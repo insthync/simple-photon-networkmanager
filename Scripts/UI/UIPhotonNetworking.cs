@@ -35,16 +35,22 @@ public class UIPhotonNetworking : UIBase
         }
     }
 
-    public virtual void OnClickStartLan()
+    public virtual void OnClickConnectToMaster()
     {
         var networkManager = SimplePhotonNetworkManager.Singleton;
-        networkManager.StartLan();
+        networkManager.ConnectToMaster();
     }
 
-    public virtual void OnClickStartOnline()
+    public virtual void OnClickConnectToBestCloudServer()
     {
         var networkManager = SimplePhotonNetworkManager.Singleton;
-        networkManager.StartOnline();
+        networkManager.ConnectToBestCloudServer();
+    }
+
+    public virtual void OnClickConnectToRegion()
+    {
+        var networkManager = SimplePhotonNetworkManager.Singleton;
+        networkManager.ConnectToRegion();
     }
 
     public virtual void OnClickJoinRandomRoom()

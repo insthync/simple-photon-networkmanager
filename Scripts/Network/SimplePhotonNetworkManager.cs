@@ -21,6 +21,7 @@ public class SimplePhotonNetworkManager : PunBehaviour
     public string gameVersion = "1";
     public string masterAddress = "localhost";
     public int masterPort = 5055;
+    public CloudRegionCode region;
     public byte maxConnections;
     public string roomName;
     public AsyncOperation LoadSceneAsyncOp { get; protected set; }
@@ -43,18 +44,25 @@ public class SimplePhotonNetworkManager : PunBehaviour
         view.viewID = UNIQUE_VIEW_ID;
     }
 
-    public void StartLan()
+    public void ConnectToMaster()
     {
         PhotonNetwork.autoJoinLobby = true;
         PhotonNetwork.automaticallySyncScene = true;
         PhotonNetwork.ConnectToMaster(masterAddress, masterPort, PhotonNetwork.PhotonServerSettings.AppID, gameVersion);
     }
 
-    public void StartOnline()
+    public void ConnectToBestCloudServer()
     {
         PhotonNetwork.autoJoinLobby = true;
         PhotonNetwork.automaticallySyncScene = true;
         PhotonNetwork.ConnectToBestCloudServer(gameVersion);
+    }
+
+    public void ConnectToRegion()
+    {
+        PhotonNetwork.autoJoinLobby = true;
+        PhotonNetwork.automaticallySyncScene = true;
+        PhotonNetwork.ConnectToRegion(region, gameVersion);
     }
 
     public void CreateRoom()
