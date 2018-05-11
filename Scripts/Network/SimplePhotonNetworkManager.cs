@@ -17,8 +17,8 @@ public class SimplePhotonNetworkManager : PunBehaviour
     public SceneNameField onlineScene;
     public GameObject playerPrefab;
     public string gameVersion = "1";
-    public string networkAddress;
-    public int networkPort;
+    public string masterAddress = "localhost";
+    public int masterPort = 5055;
     public byte maxConnections;
     public string roomName;
     public bool IsJoinedLobby { get; protected set; }
@@ -66,7 +66,7 @@ public class SimplePhotonNetworkManager : PunBehaviour
     {
         PhotonNetwork.autoJoinLobby = false;
         PhotonNetwork.automaticallySyncScene = true;
-        PhotonNetwork.ConnectToMaster(networkAddress, networkPort, PhotonNetwork.PhotonServerSettings.AppID, gameVersion);
+        PhotonNetwork.ConnectToMaster(masterAddress, masterPort, PhotonNetwork.PhotonServerSettings.AppID, gameVersion);
     }
 
     public void StartOnline()
