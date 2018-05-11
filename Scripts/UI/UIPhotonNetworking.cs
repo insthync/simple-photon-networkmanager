@@ -10,20 +10,20 @@ public class UIPhotonNetworking : UIBase
 
     private void OnEnable()
     {
-        SimplePhotonNetworkManager.onReceivedBroadcast += OnReceivedBroadcast;
+        SimplePhotonNetworkManager.onReceivedRoomListUpdate += OnReceivedRoomListUpdate;
     }
 
     private void OnDisable()
     {
-        SimplePhotonNetworkManager.onReceivedBroadcast -= OnReceivedBroadcast;
+        SimplePhotonNetworkManager.onReceivedRoomListUpdate -= OnReceivedRoomListUpdate;
     }
 
     private void OnDestroy()
     {
-        SimplePhotonNetworkManager.onReceivedBroadcast -= OnReceivedBroadcast;
+        SimplePhotonNetworkManager.onReceivedRoomListUpdate -= OnReceivedRoomListUpdate;
     }
 
-    private void OnReceivedBroadcast(NetworkDiscoveryData discoveryData)
+    private void OnReceivedRoomListUpdate(NetworkDiscoveryData discoveryData)
     {
         var key = discoveryData.roomName + "-" + discoveryData.playerName + "-" + discoveryData.sceneName;
         if (!entries.ContainsKey(key))

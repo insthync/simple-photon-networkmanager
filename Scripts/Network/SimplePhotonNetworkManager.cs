@@ -10,7 +10,7 @@ public class SimplePhotonNetworkManager : PunBehaviour
     public const string CUSTOM_ROOM_PLAYER_NAME = "P";
     public const string CUSTOM_ROOM_SCENE_NAME = "S";
     public static SimplePhotonNetworkManager Singleton { get; protected set; }
-    public static event System.Action<NetworkDiscoveryData> onReceivedBroadcast;
+    public static event System.Action<NetworkDiscoveryData> onReceivedRoomListUpdate;
     public static event System.Action<DisconnectCause> onConnectionError;
     public static event System.Action<object[]> onRoomConnectError;
 
@@ -94,8 +94,8 @@ public class SimplePhotonNetworkManager : PunBehaviour
             discoveryData.sceneName = (string)customProperties[CUSTOM_ROOM_SCENE_NAME];
             discoveryData.numPlayers = room.PlayerCount;
             discoveryData.maxPlayers = room.MaxPlayers;
-            if (onReceivedBroadcast != null)
-                onReceivedBroadcast.Invoke(discoveryData);
+            if (onReceivedRoomListUpdate != null)
+                onReceivedRoomListUpdate.Invoke(discoveryData);
         }
     }
 
