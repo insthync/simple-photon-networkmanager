@@ -43,9 +43,8 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
         return count;
     }
 
-    protected override void Update()
+    protected virtual void Update()
     {
-        base.Update();
         if (PhotonNetwork.isMasterClient)
             ServerUpdate();
         if (PhotonNetwork.isNonMasterClientInRoom)
