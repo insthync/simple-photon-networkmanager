@@ -21,7 +21,6 @@ public class SimplePhotonNetworkManager : PunBehaviour
     public int masterPort = 5055;
     public byte maxConnections;
     public string roomName;
-    public bool IsJoinedLobby { get; protected set; }
     public AsyncOperation LoadSceneAsyncOp { get; protected set; }
     public SimplePhotonStartPoint[] StartPoints { get; protected set; }
 
@@ -42,36 +41,16 @@ public class SimplePhotonNetworkManager : PunBehaviour
         view.viewID = UNIQUE_VIEW_ID;
     }
 
-    protected virtual void Update()
-    {
-        if (IsJoinedLobby)
-        {
-            var rooms = PhotonNetwork.GetRoomList();
-            foreach (var room in rooms)
-            {
-                var customProperties = room.CustomProperties;
-                var discoveryData = new NetworkDiscoveryData();
-                discoveryData.roomName = room.Name;
-                discoveryData.playerName = (string)customProperties[CUSTOM_ROOM_PLAYER_NAME];
-                discoveryData.sceneName = (string)customProperties[CUSTOM_ROOM_SCENE_NAME];
-                discoveryData.numPlayers = room.PlayerCount;
-                discoveryData.maxPlayers = room.MaxPlayers;
-                if (onReceivedBroadcast != null)
-                    onReceivedBroadcast.Invoke(discoveryData);
-            }
-        }
-    }
-
     public void StartLan()
     {
-        PhotonNetwork.autoJoinLobby = false;
+        PhotonNetwork.autoJoinLobby = true;
         PhotonNetwork.automaticallySyncScene = true;
         PhotonNetwork.ConnectToMaster(masterAddress, masterPort, PhotonNetwork.PhotonServerSettings.AppID, gameVersion);
     }
 
     public void StartOnline()
     {
-        PhotonNetwork.autoJoinLobby = false;
+        PhotonNetwork.autoJoinLobby = true;
         PhotonNetwork.automaticallySyncScene = true;
         PhotonNetwork.ConnectToBestCloudServer(gameVersion);
     }
@@ -88,19 +67,21 @@ public class SimplePhotonNetworkManager : PunBehaviour
         PhotonNetwork.JoinRandomRoom();
     }
 
-    /// <summary>
-    /// This will be called after function ConnectToMaster called and autoJoinLobby is False
-    /// </summary>
-    public override void OnConnectedToMaster()
+    public override void OnReceivedRoomListUpdate()
     {
-        if (isLog) Debug.Log("OnConnectedToMaster");
-        IsJoinedLobby = true;
-    }
-
-    public override void OnJoinedLobby()
-    {
-        if (isLog) Debug.Log("OnJoinedLobby");
-        IsJoinedLobby = true;
+        var rooms = PhotonNetwork.GetRoomList();
+        foreach (var room in rooms)
+        {
+            var customProperties = room.CustomProperties;
+            var discoveryData = new NetworkDiscoveryData();
+            discoveryData.roomName = room.Name;
+            discoveryData.playerName = (string)customProperties[CUSTOM_ROOM_PLAYER_NAME];
+            discoveryData.sceneName = (string)customProperties[CUSTOM_ROOM_SCENE_NAME];
+            discoveryData.numPlayers = room.PlayerCount;
+            discoveryData.maxPlayers = room.MaxPlayers;
+            if (onReceivedBroadcast != null)
+                onReceivedBroadcast.Invoke(discoveryData);
+        }
     }
 
     public override void OnPhotonRandomJoinFailed(object[] codeAndMsg)
