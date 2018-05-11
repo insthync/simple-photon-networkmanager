@@ -10,7 +10,9 @@ public class SimplePhotonNetworkManager : PunBehaviour
     public const string CUSTOM_ROOM_PLAYER_NAME = "P";
     public const string CUSTOM_ROOM_SCENE_NAME = "S";
     public static SimplePhotonNetworkManager Singleton { get; protected set; }
-    public static System.Action<NetworkDiscoveryData> onReceivedBroadcast;
+    public static event System.Action<NetworkDiscoveryData> onReceivedBroadcast;
+    public static event System.Action<DisconnectCause> onConnectionError;
+    public static event System.Action<object[]> onRoomConnectError;
 
     public bool isLog;
     public SceneNameField offlineScene;
@@ -67,6 +69,11 @@ public class SimplePhotonNetworkManager : PunBehaviour
         PhotonNetwork.JoinRandomRoom();
     }
 
+    public void LeaveRoom()
+    {
+        PhotonNetwork.LeaveRoom();
+    }
+
     public override void OnReceivedRoomListUpdate()
     {
         var rooms = PhotonNetwork.GetRoomList();
@@ -84,10 +91,33 @@ public class SimplePhotonNetworkManager : PunBehaviour
         }
     }
 
+
+    public override void OnFailedToConnectToPhoton(DisconnectCause cause)
+    {
+        if (isLog) Debug.Log("OnFailedToConnectToPhoton " + cause.ToString());
+        if (onConnectionError != null)
+            onConnectionError(cause);
+    }
+
+    public override void OnConnectionFail(DisconnectCause cause)
+    {
+        if (isLog) Debug.Log("OnConnectionFail " + cause.ToString());
+        if (onConnectionError != null)
+            onConnectionError(cause);
+    }
+
+    public override void OnPhotonCreateRoomFailed(object[] codeAndMsg)
+    {
+        if (isLog) Debug.Log("OnPhotonCreateRoomFailed " + codeAndMsg[0].ToString() + codeAndMsg[1].ToString());
+        if (onRoomConnectError != null)
+            onRoomConnectError(codeAndMsg);
+    }
+
     public override void OnPhotonRandomJoinFailed(object[] codeAndMsg)
     {
-        if (isLog) Debug.Log("OnPhotonRandomJoinFailed");
-        CreateRoom();
+        if (isLog) Debug.Log("OnPhotonRandomJoinFailed " + codeAndMsg[0].ToString() + codeAndMsg[1].ToString());
+        if (onRoomConnectError != null)
+            onRoomConnectError(codeAndMsg);
     }
 
     public override void OnCreatedRoom()

@@ -5,8 +5,12 @@ using Photon;
 
 public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
 {
+    public static new BaseNetworkGameManager Singleton
+    {
+        get { return SimplePhotonNetworkManager.Singleton as BaseNetworkGameManager; }
+    }
+
     public const string CUSTOM_ROOM_GAME_RULE = "G";
-    public static event System.Action<DisconnectCause> onClientError;
 
     public BaseNetworkGameRule gameRule;
     protected float updateScoreTime;
@@ -133,18 +137,6 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
     {
         if (gameRule != null)
             gameRule.OnUpdateCharacter(character);
-    }
-
-    public override void OnFailedToConnectToPhoton(DisconnectCause cause)
-    {
-        if (onClientError != null)
-            onClientError(cause);
-    }
-    
-    public override void OnConnectionFail(DisconnectCause cause)
-    {
-        if (onClientError != null)
-            onClientError(cause);
     }
 
     public override void OnCreatedRoom()
