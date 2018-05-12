@@ -2,20 +2,43 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Photon;
+using Hashtable = ExitGames.Client.Photon.Hashtable;
 
 public abstract class BaseNetworkGameCharacter : PunBehaviour, System.IComparable<BaseNetworkGameCharacter>
 {
     public static BaseNetworkGameCharacter Local { get; private set; }
 
-    #region Sync Vars
-    public string playerName;
-    public int score;
-    public int killCount;
-    public int assistCount;
-    public int dieCount;
-    #endregion
+    public const string CUSTOM_PLAYER_SCORE = "SC";
+    public const string CUSTOM_PLAYER_KILL_COUNT = "KC";
+    public const string CUSTOM_PLAYER_ASSIST_COUNT = "AC";
+    public const string CUSTOM_PLAYER_DIE_COUNT = "DC";
 
     public abstract bool IsDead { get; }
+    
+    public int score
+    {
+        get { return (int)photonView.owner.CustomProperties[CUSTOM_PLAYER_SCORE]; }
+        set { if (PhotonNetwork.isMasterClient) photonView.owner.SetCustomProperties(new Hashtable() { { CUSTOM_PLAYER_SCORE, value } }); }
+    }
+
+    public int killCount
+    {
+        get { return (int)photonView.owner.CustomProperties[CUSTOM_PLAYER_KILL_COUNT]; }
+        set { if (PhotonNetwork.isMasterClient) photonView.owner.SetCustomProperties(new Hashtable() { { CUSTOM_PLAYER_KILL_COUNT, value } }); }
+    }
+
+    public int assistCount
+    {
+        get { return (int)photonView.owner.CustomProperties[CUSTOM_PLAYER_ASSIST_COUNT]; }
+        set { if (PhotonNetwork.isMasterClient) photonView.owner.SetCustomProperties(new Hashtable() { { CUSTOM_PLAYER_ASSIST_COUNT, value } }); }
+    }
+
+    public int dieCount
+    {
+        get { return (int)photonView.owner.CustomProperties[CUSTOM_PLAYER_DIE_COUNT]; }
+        set { if (PhotonNetwork.isMasterClient) photonView.owner.SetCustomProperties(new Hashtable() { { CUSTOM_PLAYER_DIE_COUNT, value } }); }
+    }
+
     public int Score
     {
         get
@@ -86,26 +109,6 @@ public abstract class BaseNetworkGameCharacter : PunBehaviour, System.IComparabl
     {
         if (NetworkManager != null)
             NetworkManager.OnUpdateCharacter(this);
-    }
-
-    protected virtual void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
-    {
-        if (stream.isWriting)
-        {
-            stream.SendNext(playerName);
-            stream.SendNext(score);
-            stream.SendNext(killCount);
-            stream.SendNext(assistCount);
-            stream.SendNext(dieCount);
-        }
-        else
-        {
-            playerName = (string)stream.ReceiveNext();
-            score = (int)stream.ReceiveNext();
-            killCount = (int)stream.ReceiveNext();
-            assistCount = (int)stream.ReceiveNext();
-            dieCount = (int)stream.ReceiveNext();
-        }
     }
 
     public void ResetScore()
