@@ -101,7 +101,7 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
             var character = Characters[i];
             var ranking = new NetworkGameScore();
             ranking.viewId = character.photonView.viewID;
-            ranking.playerName = character.playerName;
+            ranking.playerName = character.photonView.owner.NickName;
             ranking.score = character.Score;
             ranking.killCount = character.KillCount;
             ranking.assistCount = character.AssistCount;
