@@ -192,6 +192,8 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
         if (!PhotonNetwork.isMasterClient)
             return;
 
+        base.OnPhotonPlayerConnected(newPlayer);
+
         if (!startUpdateGameRule)
         {
             startUpdateGameRule = true;
