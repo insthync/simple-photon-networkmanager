@@ -46,6 +46,11 @@ public class SimplePhotonNetworkManager : PunBehaviour
         Singleton = this;
         DontDestroyOnLoad(Singleton);
         StartPoints = new SimplePhotonStartPoint[0];
+        // Set unique view id
+        PhotonView view = GetComponent<PhotonView>();
+        if (view == null)
+            view = gameObject.AddComponent<PhotonView>();
+        view.viewID = UNIQUE_VIEW_ID;
     }
 
     protected virtual void OnValidate()
