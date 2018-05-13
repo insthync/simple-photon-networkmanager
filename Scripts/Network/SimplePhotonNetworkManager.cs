@@ -183,9 +183,9 @@ public class SimplePhotonNetworkManager : PunBehaviour
         {
             yield return null;
         }
+        OnOnlineSceneChanged();
         if (PhotonNetwork.isMasterClient)
             OnPhotonPlayerConnected(PhotonNetwork.player);
-        OnOnlineSceneChanged();
     }
 
     /// <summary>
