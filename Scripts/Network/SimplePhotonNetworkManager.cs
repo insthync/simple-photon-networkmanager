@@ -3,10 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Photon;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 public class SimplePhotonNetworkManager : PunBehaviour
 {
-    public const int UNIQUE_VIEW_ID = int.MaxValue;
+    public const int UNIQUE_VIEW_ID = 999;
     public const string CUSTOM_ROOM_PLAYER_NAME = "P";
     public const string CUSTOM_ROOM_SCENE_NAME = "S";
     public static SimplePhotonNetworkManager Singleton { get; protected set; }
@@ -43,11 +46,18 @@ public class SimplePhotonNetworkManager : PunBehaviour
         Singleton = this;
         DontDestroyOnLoad(Singleton);
         StartPoints = new SimplePhotonStartPoint[0];
+    }
+
+    protected virtual void OnValidate()
+    {
+#if UNITY_EDITOR
         // Set unique view id
         PhotonView view = GetComponent<PhotonView>();
         if (view == null)
             view = gameObject.AddComponent<PhotonView>();
         view.viewID = UNIQUE_VIEW_ID;
+        EditorUtility.SetDirty(gameObject);
+#endif
     }
 
     public void ConnectToMaster()
@@ -109,23 +119,6 @@ public class SimplePhotonNetworkManager : PunBehaviour
     public void Disconnect()
     {
         PhotonNetwork.Disconnect();
-    }
-
-    public override void OnReceivedRoomListUpdate()
-    {
-        var rooms = PhotonNetwork.GetRoomList();
-        foreach (var room in rooms)
-        {
-            var customProperties = room.CustomProperties;
-            var discoveryData = new NetworkDiscoveryData();
-            discoveryData.roomName = room.Name;
-            discoveryData.playerName = (string)customProperties[CUSTOM_ROOM_PLAYER_NAME];
-            discoveryData.sceneName = (string)customProperties[CUSTOM_ROOM_SCENE_NAME];
-            discoveryData.numPlayers = room.PlayerCount;
-            discoveryData.maxPlayers = room.MaxPlayers;
-            if (onReceivedRoomListUpdate != null)
-                onReceivedRoomListUpdate.Invoke(discoveryData);
-        }
     }
 
     public override void OnFailedToConnectToPhoton(DisconnectCause cause)
