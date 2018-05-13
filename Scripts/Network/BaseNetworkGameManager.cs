@@ -62,7 +62,7 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
 
         if (Time.unscaledTime - updateScoreTime >= 1f)
         {
-            photonView.RPC("RpcUpdateScores", PhotonTargets.All, GetSortedScores());
+            photonView.RPC("RpcUpdateScores", PhotonTargets.All, GetSortedScoresAsObjects());
             updateScoreTime = Time.unscaledTime;
         }
 
@@ -109,6 +109,23 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
             scores[i] = ranking;
         }
         return scores;
+    }
+
+    public object[] GetSortedScoresAsObjects()
+    {
+        var sortedScores = GetSortedScores();
+        var objects = new List<object>();
+        objects.Add(sortedScores.Length);
+        foreach (var sortedScore in sortedScores)
+        {
+            objects.Add(sortedScore.viewId);
+            objects.Add(sortedScore.playerName);
+            objects.Add(sortedScore.score);
+            objects.Add(sortedScore.killCount);
+            objects.Add(sortedScore.assistCount);
+            objects.Add(sortedScore.dieCount);
+        }
+        return objects.ToArray();
     }
 
     public void RegisterCharacter(BaseNetworkGameCharacter character)
@@ -185,14 +202,30 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
             }
         }
 
-        photonView.RPC("RpcUpdateScores", newPlayer, GetSortedScores());
+        photonView.RPC("RpcUpdateScores", newPlayer, GetSortedScoresAsObjects());
         if (gameRule != null)
             photonView.RPC("RpcMatchStatus", newPlayer, gameRule.RemainsMatchTime, gameRule.IsMatchEnded);
     }
 
     [PunRPC]
-    protected void RpcUpdateScores(NetworkGameScore[] scores)
+    protected void RpcUpdateScores(object[] objects)
     {
+        if (objects == null || objects.Length <= 1)
+            return;
+        var len = (int)objects[0];
+        var scores = new NetworkGameScore[len];
+        var j = 1;
+        for (var i = 0; i < len; ++i)
+        {
+            var score = new NetworkGameScore();
+            score.viewId = (int)objects[j++];
+            score.playerName = (string)objects[j++];
+            score.score = (int)objects[j++];
+            score.killCount = (int)objects[j++];
+            score.assistCount = (int)objects[j++];
+            score.dieCount = (int)objects[j++];
+            scores[i] = score;
+        }
         UpdateScores(scores);
     }
 
