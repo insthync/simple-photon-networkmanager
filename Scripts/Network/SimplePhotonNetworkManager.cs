@@ -50,7 +50,7 @@ public class SimplePhotonNetworkManager : PunBehaviour
         view.viewID = UNIQUE_VIEW_ID;
     }
 
-    public void ConnectToMaster()
+    public virtual void ConnectToMaster()
     {
         PhotonNetwork.autoJoinLobby = true;
         PhotonNetwork.automaticallySyncScene = true;
@@ -60,7 +60,7 @@ public class SimplePhotonNetworkManager : PunBehaviour
             onJoiningLobby.Invoke();
     }
 
-    public void ConnectToBestCloudServer()
+    public virtual void ConnectToBestCloudServer()
     {
         PhotonNetwork.autoJoinLobby = true;
         PhotonNetwork.automaticallySyncScene = true;
@@ -70,7 +70,7 @@ public class SimplePhotonNetworkManager : PunBehaviour
             onJoiningLobby.Invoke();
     }
 
-    public void ConnectToRegion()
+    public virtual void ConnectToRegion()
     {
         PhotonNetwork.autoJoinLobby = true;
         PhotonNetwork.automaticallySyncScene = true;
