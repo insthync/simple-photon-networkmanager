@@ -189,7 +189,7 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
 
     public override void OnPhotonPlayerConnected(PhotonPlayer newPlayer)
     {
-        if (!PhotonNetwork.isMasterClient)
+        if (PhotonNetwork.isMasterClient)
         {
             if (!startUpdateGameRule)
             {
