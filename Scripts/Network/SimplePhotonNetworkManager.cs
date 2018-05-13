@@ -54,6 +54,7 @@ public class SimplePhotonNetworkManager : PunBehaviour
     {
         PhotonNetwork.autoJoinLobby = true;
         PhotonNetwork.automaticallySyncScene = true;
+        PhotonNetwork.PhotonServerSettings.HostType = ServerSettings.HostingOption.SelfHosted;
         PhotonNetwork.ConnectToMaster(masterAddress, masterPort, PhotonNetwork.PhotonServerSettings.AppID, gameVersion);
         if (onJoiningLobby != null)
             onJoiningLobby.Invoke();
@@ -63,6 +64,7 @@ public class SimplePhotonNetworkManager : PunBehaviour
     {
         PhotonNetwork.autoJoinLobby = true;
         PhotonNetwork.automaticallySyncScene = true;
+        PhotonNetwork.PhotonServerSettings.HostType = ServerSettings.HostingOption.BestRegion;
         PhotonNetwork.ConnectToBestCloudServer(gameVersion);
         if (onJoiningLobby != null)
             onJoiningLobby.Invoke();
@@ -72,6 +74,7 @@ public class SimplePhotonNetworkManager : PunBehaviour
     {
         PhotonNetwork.autoJoinLobby = true;
         PhotonNetwork.automaticallySyncScene = true;
+        PhotonNetwork.PhotonServerSettings.HostType = ServerSettings.HostingOption.PhotonCloud;
         PhotonNetwork.ConnectToRegion(region, gameVersion);
         if (onJoiningLobby != null)
             onJoiningLobby.Invoke();
@@ -124,7 +127,7 @@ public class SimplePhotonNetworkManager : PunBehaviour
                 onReceivedRoomListUpdate.Invoke(discoveryData);
         }
     }
-    
+
     public override void OnFailedToConnectToPhoton(DisconnectCause cause)
     {
         if (isLog) Debug.Log("OnFailedToConnectToPhoton " + cause.ToString());
