@@ -3,9 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Photon;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 public class SimplePhotonNetworkManager : PunBehaviour
 {
@@ -51,18 +48,6 @@ public class SimplePhotonNetworkManager : PunBehaviour
         if (view == null)
             view = gameObject.AddComponent<PhotonView>();
         view.viewID = UNIQUE_VIEW_ID;
-    }
-
-    protected virtual void OnValidate()
-    {
-#if UNITY_EDITOR
-        // Set unique view id
-        PhotonView view = GetComponent<PhotonView>();
-        if (view == null)
-            view = gameObject.AddComponent<PhotonView>();
-        view.viewID = UNIQUE_VIEW_ID;
-        EditorUtility.SetDirty(gameObject);
-#endif
     }
 
     public void ConnectToMaster()
