@@ -37,30 +37,30 @@ public class UIPhotonNetworking : UIBase
         }
 
         if (PhotonNetwork.connectedAndReady)
-            OnJoinedLobby();
+            OnJoinedLobbyCallback();
         else
-            OnDisconnected();
+            OnDisconnectedCallback();
 
-        SimplePhotonNetworkManager.onReceivedRoomListUpdate += OnReceivedRoomListUpdate;
-        SimplePhotonNetworkManager.onJoinedLobby += OnJoinedLobby;
-        SimplePhotonNetworkManager.onDisconnected += OnDisconnected;
+        SimplePhotonNetworkManager.onReceivedRoomListUpdate += OnReceivedRoomListUpdateCallback;
+        SimplePhotonNetworkManager.onJoinedLobby += OnJoinedLobbyCallback;
+        SimplePhotonNetworkManager.onDisconnected += OnDisconnectedCallback;
     }
 
     private void OnDisable()
     {
-        SimplePhotonNetworkManager.onReceivedRoomListUpdate -= OnReceivedRoomListUpdate;
-        SimplePhotonNetworkManager.onJoinedLobby -= OnJoinedLobby;
-        SimplePhotonNetworkManager.onDisconnected -= OnDisconnected;
+        SimplePhotonNetworkManager.onReceivedRoomListUpdate -= OnReceivedRoomListUpdateCallback;
+        SimplePhotonNetworkManager.onJoinedLobby -= OnJoinedLobbyCallback;
+        SimplePhotonNetworkManager.onDisconnected -= OnDisconnectedCallback;
     }
 
     private void OnDestroy()
     {
-        SimplePhotonNetworkManager.onReceivedRoomListUpdate -= OnReceivedRoomListUpdate;
-        SimplePhotonNetworkManager.onJoinedLobby -= OnJoinedLobby;
-        SimplePhotonNetworkManager.onDisconnected -= OnDisconnected;
+        SimplePhotonNetworkManager.onReceivedRoomListUpdate -= OnReceivedRoomListUpdateCallback;
+        SimplePhotonNetworkManager.onJoinedLobby -= OnJoinedLobbyCallback;
+        SimplePhotonNetworkManager.onDisconnected -= OnDisconnectedCallback;
     }
 
-    private void OnReceivedRoomListUpdate(NetworkDiscoveryData discoveryData)
+    private void OnReceivedRoomListUpdateCallback(NetworkDiscoveryData discoveryData)
     {
         var key = discoveryData.roomName + "-" + discoveryData.playerName + "-" + discoveryData.sceneName;
         if (!entries.ContainsKey(key))
@@ -72,7 +72,7 @@ public class UIPhotonNetworking : UIBase
         }
     }
 
-    private void OnJoinedLobby()
+    private void OnJoinedLobbyCallback()
     {
         if (uiDisconnected != null)
             uiDisconnected.Hide();
@@ -81,7 +81,7 @@ public class UIPhotonNetworking : UIBase
             uiConnected.Show();
     }
 
-    private void OnDisconnected()
+    private void OnDisconnectedCallback()
     {
         if (uiDisconnected != null)
             uiDisconnected.Show();
