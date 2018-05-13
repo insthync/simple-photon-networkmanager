@@ -190,11 +190,33 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
     public override void OnPhotonPlayerConnected(PhotonPlayer newPlayer)
     {
         if (!PhotonNetwork.isMasterClient)
-            return;
-
-        if (!startUpdateGameRule)
         {
-            startUpdateGameRule = true;
+            if (!startUpdateGameRule)
+            {
+                startUpdateGameRule = true;
+                var customProperties = PhotonNetwork.room.CustomProperties;
+                var gameRuleName = (string)PhotonNetwork.room.CustomProperties[CUSTOM_ROOM_GAME_RULE];
+                BaseNetworkGameRule foundGameRule;
+                if (BaseNetworkGameInstance.GameRules.TryGetValue(gameRuleName, out foundGameRule))
+                {
+                    gameRule = foundGameRule;
+                    gameRule.OnStartServer(this);
+                    gameRule.InitialClientObjects();
+                }
+            }
+
+            int length = 0;
+            List<object> objects;
+            GetSortedScoresAsObjects(out length, out objects);
+            photonView.RPC("RpcUpdateScores", newPlayer, length, objects.ToArray());
+            if (gameRule != null)
+                photonView.RPC("RpcMatchStatus", newPlayer, gameRule.RemainsMatchTime, gameRule.IsMatchEnded);
+
+            base.OnPhotonPlayerConnected(newPlayer);
+        }
+        else
+        {
+            // Clients have to init game rule
             var customProperties = PhotonNetwork.room.CustomProperties;
             var gameRuleName = (string)PhotonNetwork.room.CustomProperties[CUSTOM_ROOM_GAME_RULE];
             BaseNetworkGameRule foundGameRule;
@@ -204,15 +226,6 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
                 gameRule.InitialClientObjects();
             }
         }
-
-        int length = 0;
-        List<object> objects;
-        GetSortedScoresAsObjects(out length, out objects);
-        photonView.RPC("RpcUpdateScores", newPlayer, length, objects.ToArray());
-        if (gameRule != null)
-            photonView.RPC("RpcMatchStatus", newPlayer, gameRule.RemainsMatchTime, gameRule.IsMatchEnded);
-
-        base.OnPhotonPlayerConnected(newPlayer);
     }
 
     [PunRPC]
@@ -221,7 +234,7 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
         if (length == 0 || objects == null)
             return;
         var scores = new NetworkGameScore[length];
-        var j = 1;
+        var j = 0;
         for (var i = 0; i < length; ++i)
         {
             var score = new NetworkGameScore();
