@@ -169,16 +169,20 @@ public abstract class BaseNetworkGameCharacter : PunBehaviour, System.IComparabl
         if (photonView.isMine)
         {
             OnStartLocalPlayer();
-
-            if (Local != null)
-                return;
-
-            Local = this;
+            SetLocalPlayer();
         }
 
         OnStartClient();
 
         NetworkManager = FindObjectOfType<BaseNetworkGameManager>();
+    }
+
+    protected virtual void SetLocalPlayer()
+    {
+        if (Local != null)
+            return;
+
+        Local = this;
     }
 
     protected virtual void Update()
