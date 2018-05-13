@@ -127,14 +127,14 @@ public class SimplePhotonNetworkManager : PunBehaviour
 
     public override void OnPhotonCreateRoomFailed(object[] codeAndMsg)
     {
-        if (isLog) Debug.Log("OnPhotonCreateRoomFailed " + codeAndMsg[0].ToString() + codeAndMsg[1].ToString());
+        if (isLog) Debug.Log("OnPhotonCreateRoomFailed " + codeAndMsg[0].ToString() + " " + codeAndMsg[1].ToString());
         if (onRoomConnectError != null)
             onRoomConnectError(codeAndMsg);
     }
 
     public override void OnPhotonRandomJoinFailed(object[] codeAndMsg)
     {
-        if (isLog) Debug.Log("OnPhotonRandomJoinFailed " + codeAndMsg[0].ToString() + codeAndMsg[1].ToString());
+        if (isLog) Debug.Log("OnPhotonRandomJoinFailed " + codeAndMsg[0].ToString() + " " + codeAndMsg[1].ToString());
         if (onRoomConnectError != null)
             onRoomConnectError(codeAndMsg);
     }
