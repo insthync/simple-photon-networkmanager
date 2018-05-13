@@ -137,11 +137,16 @@ public abstract class BaseNetworkGameCharacter : PunBehaviour, System.IComparabl
     protected virtual void Awake()
     {
         Init();
-        if (PhotonNetwork.isMasterClient)
-            OnStartServer();
-        if (photonView.isMine)
-            OnStartLocalPlayer();
-        OnStartClient();
+    }
+
+    public override void OnPhotonPlayerConnected(PhotonPlayer newPlayer)
+    {
+        if (!PhotonNetwork.isMasterClient)
+            return;
+        photonView.RPC("RpcUpdateScore", newPlayer, score);
+        photonView.RPC("RpcUpdateKillCount", newPlayer, killCount);
+        photonView.RPC("RpcUpdateAssistCount", newPlayer, assistCount);
+        photonView.RPC("RpcUpdateDieCount", newPlayer, dieCount);
     }
 
     protected virtual void OnStartServer()
@@ -156,22 +161,23 @@ public abstract class BaseNetworkGameCharacter : PunBehaviour, System.IComparabl
     {
     }
 
-    public override void OnPhotonPlayerConnected(PhotonPlayer newPlayer)
-    {
-        if (!PhotonNetwork.isMasterClient)
-            return;
-        photonView.RPC("RpcUpdateScore", newPlayer, score);
-        photonView.RPC("RpcUpdateKillCount", newPlayer, killCount);
-        photonView.RPC("RpcUpdateAssistCount", newPlayer, assistCount);
-        photonView.RPC("RpcUpdateDieCount", newPlayer, dieCount);
-    }
-
     protected virtual void Start()
     {
-        if (Local != null)
-            return;
+        if (PhotonNetwork.isMasterClient)
+            OnStartServer();
 
-        Local = this;
+        if (photonView.isMine)
+        {
+            OnStartLocalPlayer();
+
+            if (Local != null)
+                return;
+
+            Local = this;
+        }
+
+        OnStartClient();
+
         NetworkManager = FindObjectOfType<BaseNetworkGameManager>();
     }
 
