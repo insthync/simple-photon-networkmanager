@@ -27,6 +27,6 @@ public class UIPhotonNetworkingEntry : UnityEngine.MonoBehaviour
     public virtual void OnClickJoinButton()
     {
         var networkManager = SimplePhotonNetworkManager.Singleton;
-        PhotonNetwork.JoinRoom(_data.roomName);
+        networkManager.JoinRoom(_data.roomName);
     }
 }
