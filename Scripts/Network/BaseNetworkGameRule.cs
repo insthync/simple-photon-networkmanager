@@ -1,12 +1,16 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using Hashtable = ExitGames.Client.Photon.Hashtable;
 
 public abstract class BaseNetworkGameRule : ScriptableObject
 {
-    public const string BotCountKey = "BotCount";
-    public const string MatchTimeKey = "MatchTime";
-    public const string MatchKillKey = "MatchKill";
-    public const string MatchScoreKey = "MatchScore";
+    public const string MatchTimeCountdownKey = "rTCD";
+    public const string BotAddedKey = "rBAD";
+    public const string IsMatchEndedKey = "rEND";
+    public const string BotCountKey = "rBC";
+    public const string MatchTimeKey = "rMT";
+    public const string MatchKillKey = "rMK";
+    public const string MatchScoreKey = "rMS";
 
     [SerializeField]
     private string title;
@@ -28,9 +32,7 @@ public abstract class BaseNetworkGameRule : ScriptableObject
     private int defaultMatchScore;
     [HideInInspector]
     public int matchScore;
-    protected float matchStartTime;
     protected BaseNetworkGameManager networkManager;
-    protected bool isBotAdded;
     public string Title { get { return title; } }
     public string Description { get { return description; } }
     protected abstract BaseNetworkGameCharacter NewBot();
@@ -53,19 +55,54 @@ public abstract class BaseNetworkGameRule : ScriptableObject
     {
         get
         {
-            if (HasOptionMatchTime && matchTime > 0 && Time.unscaledTime - matchStartTime < matchTime && !IsMatchEnded)
-                return matchTime - (Time.unscaledTime - matchStartTime);
+            if (HasOptionMatchTime && MatchTime > 0 && MatchTimeCountdown > 0 && !IsMatchEnded)
+                return MatchTimeCountdown;
             return 0f;
         }
     }
-    public bool IsMatchEnded { get; protected set; }
+
+    public float MatchTimeCountdown
+    {
+        get { return (float)PhotonNetwork.room.CustomProperties[MatchTimeCountdownKey]; }
+        protected set { if (PhotonNetwork.isMasterClient) PhotonNetwork.room.SetCustomProperties(new Hashtable() { { MatchTimeCountdownKey, value } }); }
+    }
+    public bool IsBotAdded
+    {
+        get { return (bool)PhotonNetwork.room.CustomProperties[BotAddedKey]; }
+        protected set { if (PhotonNetwork.isMasterClient) PhotonNetwork.room.SetCustomProperties(new Hashtable() { { BotAddedKey, value } }); }
+    }
+    public bool IsMatchEnded
+    {
+        get { return (bool)PhotonNetwork.room.CustomProperties[IsMatchEndedKey]; }
+        protected set { if (PhotonNetwork.isMasterClient) PhotonNetwork.room.SetCustomProperties(new Hashtable() { { IsMatchEndedKey, value } }); }
+    }
+    public int BotCount
+    {
+        get { return (int)PhotonNetwork.room.CustomProperties[BotCountKey]; }
+        protected set { if (PhotonNetwork.isMasterClient) PhotonNetwork.room.SetCustomProperties(new Hashtable() { { BotCountKey, value } }); }
+    }
+    public int MatchTime
+    {
+        get { return (int)PhotonNetwork.room.CustomProperties[MatchTimeKey]; }
+        protected set { if (PhotonNetwork.isMasterClient) PhotonNetwork.room.SetCustomProperties(new Hashtable() { { MatchTimeKey, value } }); }
+    }
+    public int MatchKill
+    {
+        get { return (int)PhotonNetwork.room.CustomProperties[MatchKillKey]; }
+        protected set { if (PhotonNetwork.isMasterClient) PhotonNetwork.room.SetCustomProperties(new Hashtable() { { MatchKillKey, value } }); }
+    }
+    public int MatchScore
+    {
+        get { return (int)PhotonNetwork.room.CustomProperties[MatchScoreKey]; }
+        protected set { if (PhotonNetwork.isMasterClient) PhotonNetwork.room.SetCustomProperties(new Hashtable() { { MatchScoreKey, value } }); }
+    }
 
     public virtual void AddBots()
     {
         if (!HasOptionBotCount)
             return;
 
-        for (var i = 0; i < botCount; ++i)
+        for (var i = 0; i < BotCount; ++i)
         {
             var character = NewBot();
             if (character == null)
@@ -74,35 +111,35 @@ public abstract class BaseNetworkGameRule : ScriptableObject
         }
     }
 
-    public virtual void ReadConfigs(Dictionary<string, string> configs)
-    {
-        if (configs.ContainsKey(BotCountKey))
-            int.TryParse(configs[BotCountKey], out botCount);
-        if (configs.ContainsKey(MatchTimeKey))
-            int.TryParse(configs[MatchTimeKey], out matchTime);
-        if (configs.ContainsKey(MatchKillKey))
-            int.TryParse(configs[MatchKillKey], out matchKill);
-        if (configs.ContainsKey(MatchScoreKey))
-            int.TryParse(configs[MatchScoreKey], out matchScore);
-    }
-
     public virtual void OnStartServer(BaseNetworkGameManager manager)
     {
-        matchStartTime = Time.unscaledTime;
         networkManager = manager;
-        isBotAdded = false;
+        BotCount = botCount;
+        MatchTime = matchTime;
+        MatchKill = matchKill;
+        MatchScore = matchScore;
+        MatchTimeCountdown = MatchTime;
+        IsBotAdded = false;
         IsMatchEnded = false;
+    }
+
+    public virtual void OnMasterChange(BaseNetworkGameManager manager)
+    {
+        networkManager = manager;
     }
 
     public virtual void OnUpdate()
     {
-        if (!isBotAdded)
+        if (!IsBotAdded)
         {
             AddBots();
-            isBotAdded = true;
+            IsBotAdded = true;
         }
 
-        if (HasOptionMatchTime && matchTime > 0 && Time.unscaledTime - matchStartTime >= matchTime && !IsMatchEnded)
+        if (MatchTimeCountdown > 0)
+            MatchTimeCountdown -= Time.unscaledDeltaTime;
+
+        if (HasOptionMatchTime && MatchTime > 0 && MatchTimeCountdown <= 0 && !IsMatchEnded)
         {
             IsMatchEnded = true;
             EndMatch();
@@ -111,13 +148,13 @@ public abstract class BaseNetworkGameRule : ScriptableObject
 
     public virtual void OnUpdateCharacter(BaseNetworkGameCharacter character)
     {
-        if (HasOptionMatchScore && matchScore > 0 && character.Score >= matchScore)
+        if (HasOptionMatchScore && MatchScore > 0 && character.Score >= MatchScore)
         {
             IsMatchEnded = true;
             EndMatch();
         }
 
-        if (HasOptionMatchKill && matchKill > 0 && character.KillCount >= matchKill)
+        if (HasOptionMatchKill && MatchKill > 0 && character.KillCount >= MatchKill)
         {
             IsMatchEnded = true;
             EndMatch();

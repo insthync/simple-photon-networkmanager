@@ -195,7 +195,7 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
             Characters.Add(character);
         }
         if (gameRule != null)
-            gameRule.OnStartServer(this);
+            gameRule.OnMasterChange(this);
         startUpdateGameRule = true;
     }
 
