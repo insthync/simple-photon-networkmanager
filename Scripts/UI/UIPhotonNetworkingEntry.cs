@@ -15,7 +15,7 @@ public class UIPhotonNetworkingEntry : UnityEngine.MonoBehaviour
     {
         _data = data;
         if (textRoomName != null)
-            textRoomName.text = data.roomName;
+            textRoomName.text = string.IsNullOrEmpty(data.roomName) ? "Untitled" : data.roomName;
         if (textPlayerName != null)
             textPlayerName.text = data.playerName;
         if (textSceneName != null)
@@ -27,6 +27,6 @@ public class UIPhotonNetworkingEntry : UnityEngine.MonoBehaviour
     public virtual void OnClickJoinButton()
     {
         var networkManager = SimplePhotonNetworkManager.Singleton;
-        networkManager.JoinRoom(_data.roomName);
+        networkManager.JoinRoom(_data.name);
     }
 }

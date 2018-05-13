@@ -3,14 +3,16 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Photon;
+using Hashtable = ExitGames.Client.Photon.Hashtable;
 
 public class SimplePhotonNetworkManager : PunBehaviour
 {
     public const int UNIQUE_VIEW_ID = 999;
+    public const string CUSTOM_ROOM_ROOM_NAME = "R";
     public const string CUSTOM_ROOM_PLAYER_NAME = "P";
     public const string CUSTOM_ROOM_SCENE_NAME = "S";
     public static SimplePhotonNetworkManager Singleton { get; protected set; }
-    public static event System.Action<NetworkDiscoveryData> onReceivedRoomListUpdate;
+    public static event System.Action<List<NetworkDiscoveryData>> onReceivedRoomListUpdate;
     public static event System.Action<DisconnectCause> onConnectionError;
     public static event System.Action<object[]> onRoomConnectError;
     public static event System.Action onJoiningLobby;
@@ -83,6 +85,7 @@ public class SimplePhotonNetworkManager : PunBehaviour
     public void CreateRoom()
     {
         var roomOptions = new RoomOptions();
+        roomOptions.CustomRoomProperties = new Hashtable() { { CUSTOM_ROOM_ROOM_NAME, roomName } };
         roomOptions.MaxPlayers = maxConnections;
         PhotonNetwork.CreateRoom(roomName, roomOptions, null);
     }
@@ -114,18 +117,21 @@ public class SimplePhotonNetworkManager : PunBehaviour
     public override void OnReceivedRoomListUpdate()
     {
         var rooms = PhotonNetwork.GetRoomList();
+        var foundRooms = new List<NetworkDiscoveryData>();
         foreach (var room in rooms)
         {
             var customProperties = room.CustomProperties;
             var discoveryData = new NetworkDiscoveryData();
-            discoveryData.roomName = room.Name;
+            discoveryData.name = room.Name;
+            discoveryData.roomName = (string)customProperties[CUSTOM_ROOM_ROOM_NAME];
             discoveryData.playerName = (string)customProperties[CUSTOM_ROOM_PLAYER_NAME];
             discoveryData.sceneName = (string)customProperties[CUSTOM_ROOM_SCENE_NAME];
             discoveryData.numPlayers = room.PlayerCount;
             discoveryData.maxPlayers = room.MaxPlayers;
-            if (onReceivedRoomListUpdate != null)
-                onReceivedRoomListUpdate.Invoke(discoveryData);
+            foundRooms.Add(discoveryData);
         }
+        if (onReceivedRoomListUpdate != null)
+            onReceivedRoomListUpdate.Invoke(foundRooms);
     }
 
     public override void OnFailedToConnectToPhoton(DisconnectCause cause)

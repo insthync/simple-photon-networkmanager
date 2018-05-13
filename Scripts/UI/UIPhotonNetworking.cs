@@ -60,15 +60,24 @@ public class UIPhotonNetworking : UIBase
         SimplePhotonNetworkManager.onDisconnected -= OnDisconnectedCallback;
     }
 
-    private void OnReceivedRoomListUpdateCallback(NetworkDiscoveryData discoveryData)
+    private void OnReceivedRoomListUpdateCallback(List<NetworkDiscoveryData> discoveryData)
     {
-        var key = discoveryData.roomName + "-" + discoveryData.playerName + "-" + discoveryData.sceneName;
-        if (!entries.ContainsKey(key))
+        for (var i = gameListContainer.childCount - 1; i >= 0; --i)
         {
-            var newEntry = Instantiate(entryPrefab, gameListContainer);
-            newEntry.SetData(discoveryData);
-            newEntry.gameObject.SetActive(true);
-            entries.Add(key, newEntry);
+            var child = gameListContainer.GetChild(i);
+            Destroy(child.gameObject);
+        }
+        entries.Clear();
+        foreach (var data in discoveryData)
+        {
+            var key = data.name;
+            if (!entries.ContainsKey(key))
+            {
+                var newEntry = Instantiate(entryPrefab, gameListContainer);
+                newEntry.SetData(data);
+                newEntry.gameObject.SetActive(true);
+                entries.Add(key, newEntry);
+            }
         }
     }
 
