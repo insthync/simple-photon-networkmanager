@@ -168,10 +168,22 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
         base.OnCreatedRoom();
     }
 
-    public override void OnJoinedRoom()
+    public override void OnOnlineSceneChanged()
     {
         ResetGame();
-        base.OnJoinedRoom();
+        var customProperties = PhotonNetwork.room.CustomProperties;
+        var gameRuleName = (string)PhotonNetwork.room.CustomProperties[CUSTOM_ROOM_GAME_RULE];
+        BaseNetworkGameRule foundGameRule;
+        if (BaseNetworkGameInstance.GameRules.TryGetValue(gameRuleName, out foundGameRule))
+        {
+            gameRule = foundGameRule;
+            gameRule.InitialClientObjects();
+            if (PhotonNetwork.isMasterClient && !startUpdateGameRule)
+            {
+                startUpdateGameRule = true;
+                gameRule.OnStartServer(this);
+            }
+        }
     }
 
     public override void OnMasterClientSwitched(PhotonPlayer newMasterClient)
@@ -189,43 +201,17 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
 
     public override void OnPhotonPlayerConnected(PhotonPlayer newPlayer)
     {
-        if (PhotonNetwork.isMasterClient)
-        {
-            if (!startUpdateGameRule)
-            {
-                startUpdateGameRule = true;
-                var customProperties = PhotonNetwork.room.CustomProperties;
-                var gameRuleName = (string)PhotonNetwork.room.CustomProperties[CUSTOM_ROOM_GAME_RULE];
-                BaseNetworkGameRule foundGameRule;
-                if (BaseNetworkGameInstance.GameRules.TryGetValue(gameRuleName, out foundGameRule))
-                {
-                    gameRule = foundGameRule;
-                    gameRule.OnStartServer(this);
-                    gameRule.InitialClientObjects();
-                }
-            }
+        if (!PhotonNetwork.isMasterClient)
+            return;
 
-            int length = 0;
-            List<object> objects;
-            GetSortedScoresAsObjects(out length, out objects);
-            photonView.RPC("RpcUpdateScores", newPlayer, length, objects.ToArray());
-            if (gameRule != null)
-                photonView.RPC("RpcMatchStatus", newPlayer, gameRule.RemainsMatchTime, gameRule.IsMatchEnded);
+        int length = 0;
+        List<object> objects;
+        GetSortedScoresAsObjects(out length, out objects);
+        photonView.RPC("RpcUpdateScores", newPlayer, length, objects.ToArray());
+        if (gameRule != null)
+            photonView.RPC("RpcMatchStatus", newPlayer, gameRule.RemainsMatchTime, gameRule.IsMatchEnded);
 
-            base.OnPhotonPlayerConnected(newPlayer);
-        }
-        else if (newPlayer.IsLocal)
-        {
-            // Clients have to init game rule
-            var customProperties = PhotonNetwork.room.CustomProperties;
-            var gameRuleName = (string)PhotonNetwork.room.CustomProperties[CUSTOM_ROOM_GAME_RULE];
-            BaseNetworkGameRule foundGameRule;
-            if (BaseNetworkGameInstance.GameRules.TryGetValue(gameRuleName, out foundGameRule))
-            {
-                gameRule = foundGameRule;
-                gameRule.InitialClientObjects();
-            }
-        }
+        base.OnPhotonPlayerConnected(newPlayer);
     }
 
     [PunRPC]
@@ -270,6 +256,6 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
         MatchEndedAt = 0f;
         startUpdateGameRule = false;
     }
-    
+
     protected abstract void UpdateScores(NetworkGameScore[] scores);
 }

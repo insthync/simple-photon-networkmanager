@@ -172,8 +172,7 @@ public class SimplePhotonNetworkManager : PunBehaviour
     public override void OnJoinedRoom()
     {
         if (isLog) Debug.Log("OnJoinedRoom");
-        if (PhotonNetwork.isMasterClient)
-            StartCoroutine(WaitOnlineSceneLoaded());
+        StartCoroutine(WaitOnlineSceneLoaded());
         if (onJoinedRoom != null)
             onJoinedRoom.Invoke();
     }
@@ -184,7 +183,16 @@ public class SimplePhotonNetworkManager : PunBehaviour
         {
             yield return null;
         }
-        OnPhotonPlayerConnected(PhotonNetwork.player);
+        if (PhotonNetwork.isMasterClient)
+            OnPhotonPlayerConnected(PhotonNetwork.player);
+        OnOnlineSceneChanged();
+    }
+
+    /// <summary>
+    /// Override this to initialize something after scene changed
+    /// </summary>
+    public virtual void OnOnlineSceneChanged()
+    {
     }
 
     public override void OnPhotonPlayerConnected(PhotonPlayer newPlayer)
