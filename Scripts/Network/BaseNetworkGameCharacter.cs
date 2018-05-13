@@ -137,6 +137,23 @@ public abstract class BaseNetworkGameCharacter : PunBehaviour, System.IComparabl
     protected virtual void Awake()
     {
         Init();
+        if (PhotonNetwork.isMasterClient)
+            OnStartServer();
+        if (photonView.isMine)
+            OnStartLocalPlayer();
+        OnStartClient();
+    }
+
+    protected virtual void OnStartServer()
+    {
+    }
+
+    protected virtual void OnStartClient()
+    {
+    }
+
+    protected virtual void OnStartLocalPlayer()
+    {
     }
 
     public override void OnPhotonPlayerConnected(PhotonPlayer newPlayer)
