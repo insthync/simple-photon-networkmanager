@@ -214,7 +214,7 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
 
             base.OnPhotonPlayerConnected(newPlayer);
         }
-        else
+        else if (newPlayer.IsLocal)
         {
             // Clients have to init game rule
             var customProperties = PhotonNetwork.room.CustomProperties;
