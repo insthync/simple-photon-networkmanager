@@ -192,8 +192,6 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
         if (!PhotonNetwork.isMasterClient)
             return;
 
-        base.OnPhotonPlayerConnected(newPlayer);
-
         if (!startUpdateGameRule)
         {
             startUpdateGameRule = true;
@@ -213,6 +211,8 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
         photonView.RPC("RpcUpdateScores", newPlayer, length, objects.ToArray());
         if (gameRule != null)
             photonView.RPC("RpcMatchStatus", newPlayer, gameRule.RemainsMatchTime, gameRule.IsMatchEnded);
+
+        base.OnPhotonPlayerConnected(newPlayer);
     }
 
     [PunRPC]
