@@ -21,6 +21,8 @@ public class UINetworkLoading : MonoBehaviour
         SimplePhotonNetworkManager.onJoiningRoom += OnJoiningRoom;
         SimplePhotonNetworkManager.onJoinedLobby += OnJoinedLobby;
         SimplePhotonNetworkManager.onJoinedRoom += OnJoinedRoom;
+        SimplePhotonNetworkManager.onConnectionError += OnConnectionError;
+        SimplePhotonNetworkManager.onRoomConnectError += OnRoomConnectError;
     }
 
     public void OnJoiningLobby()
@@ -43,6 +45,24 @@ public class UINetworkLoading : MonoBehaviour
 
     public void OnJoinedRoom()
     {
+        if (joiningRoomObject != null)
+            joiningRoomObject.SetActive(false);
+    }
+
+    public void OnConnectionError(DisconnectCause error)
+    {
+        if (joiningLobbyObject != null)
+            joiningLobbyObject.SetActive(false);
+
+        if (joiningRoomObject != null)
+            joiningRoomObject.SetActive(false);
+    }
+
+    public void OnRoomConnectError(object[] codeAndMsg)
+    {
+        if (joiningLobbyObject != null)
+            joiningLobbyObject.SetActive(false);
+
         if (joiningRoomObject != null)
             joiningRoomObject.SetActive(false);
     }
