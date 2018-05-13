@@ -2,43 +2,71 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Photon;
-using Hashtable = ExitGames.Client.Photon.Hashtable;
 
 public abstract class BaseNetworkGameCharacter : PunBehaviour, System.IComparable<BaseNetworkGameCharacter>
 {
     public static BaseNetworkGameCharacter Local { get; private set; }
 
-    public const string CUSTOM_PLAYER_SCORE = "SC";
-    public const string CUSTOM_PLAYER_KILL_COUNT = "KC";
-    public const string CUSTOM_PLAYER_ASSIST_COUNT = "AC";
-    public const string CUSTOM_PLAYER_DIE_COUNT = "DC";
-
     public abstract bool IsDead { get; }
-    
+
+    protected int _score;
+    protected int _killCount;
+    protected int _assistCount;
+    protected int _dieCount;
+
+    public virtual string playerName
+    {
+        get { return photonView.owner.NickName; }
+        set { if (photonView.isMine) photonView.owner.NickName = value; }
+    }
     public int score
     {
-        get { return (int)photonView.owner.CustomProperties[CUSTOM_PLAYER_SCORE]; }
-        set { if (PhotonNetwork.isMasterClient) photonView.owner.SetCustomProperties(new Hashtable() { { CUSTOM_PLAYER_SCORE, value } }); }
+        get { return _score; }
+        set
+        {
+            if (PhotonNetwork.isMasterClient && value != score)
+            {
+                _score = value;
+                photonView.RPC("RpcUpdateScore", PhotonTargets.Others, value);
+            }
+        }
     }
-
     public int killCount
     {
-        get { return (int)photonView.owner.CustomProperties[CUSTOM_PLAYER_KILL_COUNT]; }
-        set { if (PhotonNetwork.isMasterClient) photonView.owner.SetCustomProperties(new Hashtable() { { CUSTOM_PLAYER_KILL_COUNT, value } }); }
+        get { return _killCount; }
+        set
+        {
+            if (PhotonNetwork.isMasterClient && value != killCount)
+            {
+                _killCount = value;
+                photonView.RPC("RpcUpdateKillCount", PhotonTargets.Others, value);
+            }
+        }
     }
-
     public int assistCount
     {
-        get { return (int)photonView.owner.CustomProperties[CUSTOM_PLAYER_ASSIST_COUNT]; }
-        set { if (PhotonNetwork.isMasterClient) photonView.owner.SetCustomProperties(new Hashtable() { { CUSTOM_PLAYER_ASSIST_COUNT, value } }); }
+        get { return _assistCount; }
+        set
+        {
+            if (PhotonNetwork.isMasterClient && value != assistCount)
+            {
+                _assistCount = value;
+                photonView.RPC("RpcUpdateAssistCount", PhotonTargets.Others, value);
+            }
+        }
     }
-
     public int dieCount
     {
-        get { return (int)photonView.owner.CustomProperties[CUSTOM_PLAYER_DIE_COUNT]; }
-        set { if (PhotonNetwork.isMasterClient) photonView.owner.SetCustomProperties(new Hashtable() { { CUSTOM_PLAYER_DIE_COUNT, value } }); }
+        get { return _dieCount; }
+        set
+        {
+            if (PhotonNetwork.isMasterClient && value != dieCount)
+            {
+                _dieCount = value;
+                photonView.RPC("RpcUpdateDieCount", PhotonTargets.Others, value);
+            }
+        }
     }
-
     public int Score
     {
         get
@@ -96,6 +124,31 @@ public abstract class BaseNetworkGameCharacter : PunBehaviour, System.IComparabl
         return true;
     }
 
+    protected virtual void Init()
+    {
+        if (!PhotonNetwork.isMasterClient)
+            return;
+        score = 0;
+        killCount = 0;
+        assistCount = 0;
+        dieCount = 0;
+    }
+
+    protected virtual void Awake()
+    {
+        Init();
+    }
+
+    public override void OnPhotonPlayerConnected(PhotonPlayer newPlayer)
+    {
+        if (!PhotonNetwork.isMasterClient)
+            return;
+        photonView.RPC("RpcUpdateScore", newPlayer, score);
+        photonView.RPC("RpcUpdateKillCount", newPlayer, killCount);
+        photonView.RPC("RpcUpdateAssistCount", newPlayer, assistCount);
+        photonView.RPC("RpcUpdateDieCount", newPlayer, dieCount);
+    }
+
     protected virtual void Start()
     {
         if (Local != null)
@@ -135,4 +188,27 @@ public abstract class BaseNetworkGameCharacter : PunBehaviour, System.IComparabl
     {
         return ((-1 * Score.CompareTo(other.Score)) * 10) + photonView.viewID.CompareTo(other.photonView.viewID);
     }
+
+    #region Update RPCs
+    [PunRPC]
+    protected void RpcUpdateScore(int score)
+    {
+        _score = score;
+    }
+    [PunRPC]
+    protected void RpcUpdateKillCount(int killCount)
+    {
+        _killCount = killCount;
+    }
+    [PunRPC]
+    protected void RpcUpdateAssistCount(int assistCount)
+    {
+        _assistCount = assistCount;
+    }
+    [PunRPC]
+    protected void RpcUpdateDieCount(int dieCount)
+    {
+        _dieCount = dieCount;
+    }
+    #endregion
 }
