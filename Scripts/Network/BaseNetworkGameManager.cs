@@ -62,7 +62,10 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
 
         if (Time.unscaledTime - updateScoreTime >= 1f)
         {
-            photonView.RPC("RpcUpdateScores", PhotonTargets.All, GetSortedScoresAsObjects());
+            int length = 0;
+            List<object> objects;
+            GetSortedScoresAsObjects(out length, out objects);
+            photonView.RPC("RpcUpdateScores", PhotonTargets.All, length, objects.ToArray());
             updateScoreTime = Time.unscaledTime;
         }
 
@@ -111,11 +114,12 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
         return scores;
     }
 
-    public object[] GetSortedScoresAsObjects()
+    public void GetSortedScoresAsObjects(out int length, out List<object> objects)
     {
+        length = 0;
+        objects = new List<object>();
         var sortedScores = GetSortedScores();
-        var objects = new List<object>();
-        objects.Add(sortedScores.Length);
+        length = (sortedScores.Length);
         foreach (var sortedScore in sortedScores)
         {
             objects.Add(sortedScore.viewId);
@@ -125,7 +129,6 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
             objects.Add(sortedScore.assistCount);
             objects.Add(sortedScore.dieCount);
         }
-        return objects.ToArray();
     }
 
     public void RegisterCharacter(BaseNetworkGameCharacter character)
@@ -202,20 +205,22 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
             }
         }
 
-        photonView.RPC("RpcUpdateScores", newPlayer, GetSortedScoresAsObjects());
+        int length = 0;
+        List<object> objects;
+        GetSortedScoresAsObjects(out length, out objects);
+        photonView.RPC("RpcUpdateScores", newPlayer, length, objects.ToArray());
         if (gameRule != null)
             photonView.RPC("RpcMatchStatus", newPlayer, gameRule.RemainsMatchTime, gameRule.IsMatchEnded);
     }
 
     [PunRPC]
-    protected void RpcUpdateScores(object[] objects)
+    protected void RpcUpdateScores(int length, object[] objects)
     {
-        if (objects == null || objects.Length <= 1)
+        if (length == 0 || objects == null)
             return;
-        var len = (int)objects[0];
-        var scores = new NetworkGameScore[len];
+        var scores = new NetworkGameScore[length];
         var j = 1;
-        for (var i = 0; i < len; ++i)
+        for (var i = 0; i < length; ++i)
         {
             var score = new NetworkGameScore();
             score.viewId = (int)objects[j++];
