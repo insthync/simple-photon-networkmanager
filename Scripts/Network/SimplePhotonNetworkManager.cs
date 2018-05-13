@@ -111,6 +111,23 @@ public class SimplePhotonNetworkManager : PunBehaviour
         PhotonNetwork.Disconnect();
     }
 
+    public override void OnReceivedRoomListUpdate()
+    {
+        var rooms = PhotonNetwork.GetRoomList();
+        foreach (var room in rooms)
+        {
+            var customProperties = room.CustomProperties;
+            var discoveryData = new NetworkDiscoveryData();
+            discoveryData.roomName = room.Name;
+            discoveryData.playerName = (string)customProperties[CUSTOM_ROOM_PLAYER_NAME];
+            discoveryData.sceneName = (string)customProperties[CUSTOM_ROOM_SCENE_NAME];
+            discoveryData.numPlayers = room.PlayerCount;
+            discoveryData.maxPlayers = room.MaxPlayers;
+            if (onReceivedRoomListUpdate != null)
+                onReceivedRoomListUpdate.Invoke(discoveryData);
+        }
+    }
+
     public override void OnFailedToConnectToPhoton(DisconnectCause cause)
     {
         if (isLog) Debug.Log("OnFailedToConnectToPhoton " + cause.ToString());
