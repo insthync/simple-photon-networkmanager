@@ -16,7 +16,7 @@ public abstract class BaseNetworkGameCharacter : PunBehaviour, System.IComparabl
 
     public virtual string playerName
     {
-        get { return photonView.owner.NickName; }
+        get { return (photonView != null && photonView.owner != null) ? photonView.owner.NickName : ""; }
         set { if (photonView.isMine) photonView.owner.NickName = value; }
     }
     public int score
