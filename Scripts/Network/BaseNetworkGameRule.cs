@@ -63,37 +63,37 @@ public abstract class BaseNetworkGameRule : ScriptableObject
 
     public float MatchTimeCountdown
     {
-        get { return (float)PhotonNetwork.room.CustomProperties[MatchTimeCountdownKey]; }
+        get { try { return (float)PhotonNetwork.room.CustomProperties[MatchTimeCountdownKey]; } catch { } return 0f; }
         protected set { if (PhotonNetwork.isMasterClient) PhotonNetwork.room.SetCustomProperties(new Hashtable() { { MatchTimeCountdownKey, value } }); }
     }
     public bool IsBotAdded
     {
-        get { return (bool)PhotonNetwork.room.CustomProperties[BotAddedKey]; }
+        get { try { return (bool)PhotonNetwork.room.CustomProperties[BotAddedKey]; } catch { } return false; }
         protected set { if (PhotonNetwork.isMasterClient) PhotonNetwork.room.SetCustomProperties(new Hashtable() { { BotAddedKey, value } }); }
     }
     public bool IsMatchEnded
     {
-        get { return (bool)PhotonNetwork.room.CustomProperties[IsMatchEndedKey]; }
+        get { try { return (bool)PhotonNetwork.room.CustomProperties[IsMatchEndedKey]; } catch { } return false; }
         protected set { if (PhotonNetwork.isMasterClient) PhotonNetwork.room.SetCustomProperties(new Hashtable() { { IsMatchEndedKey, value } }); }
     }
     public int BotCount
     {
-        get { return (int)PhotonNetwork.room.CustomProperties[BotCountKey]; }
+        get { try { return (int)PhotonNetwork.room.CustomProperties[BotCountKey]; } catch { } return 0; }
         protected set { if (PhotonNetwork.isMasterClient) PhotonNetwork.room.SetCustomProperties(new Hashtable() { { BotCountKey, value } }); }
     }
     public int MatchTime
     {
-        get { return (int)PhotonNetwork.room.CustomProperties[MatchTimeKey]; }
+        get { try { return (int)PhotonNetwork.room.CustomProperties[MatchTimeKey]; } catch { } return 0; }
         protected set { if (PhotonNetwork.isMasterClient) PhotonNetwork.room.SetCustomProperties(new Hashtable() { { MatchTimeKey, value } }); }
     }
     public int MatchKill
     {
-        get { return (int)PhotonNetwork.room.CustomProperties[MatchKillKey]; }
+        get { try { return (int)PhotonNetwork.room.CustomProperties[MatchKillKey]; } catch { } return 0; }
         protected set { if (PhotonNetwork.isMasterClient) PhotonNetwork.room.SetCustomProperties(new Hashtable() { { MatchKillKey, value } }); }
     }
     public int MatchScore
     {
-        get { return (int)PhotonNetwork.room.CustomProperties[MatchScoreKey]; }
+        get { try { return (int)PhotonNetwork.room.CustomProperties[MatchScoreKey]; } catch { } return 0; }
         protected set { if (PhotonNetwork.isMasterClient) PhotonNetwork.room.SetCustomProperties(new Hashtable() { { MatchScoreKey, value } }); }
     }
 
