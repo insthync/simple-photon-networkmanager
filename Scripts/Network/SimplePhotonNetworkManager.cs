@@ -13,6 +13,12 @@ public class SimplePhotonNetworkManager : PunBehaviour
     public static event System.Action<NetworkDiscoveryData> onReceivedRoomListUpdate;
     public static event System.Action<DisconnectCause> onConnectionError;
     public static event System.Action<object[]> onRoomConnectError;
+    public static event System.Action onJoiningLobby;
+    public static event System.Action onJoinedLobby;
+    public static event System.Action onJoiningRoom;
+    public static event System.Action onJoinedRoom;
+    public static event System.Action onLeftRoom;
+    public static event System.Action onDisconnected;
 
     public bool isLog;
     public SceneNameField offlineScene;
@@ -49,6 +55,8 @@ public class SimplePhotonNetworkManager : PunBehaviour
         PhotonNetwork.autoJoinLobby = true;
         PhotonNetwork.automaticallySyncScene = true;
         PhotonNetwork.ConnectToMaster(masterAddress, masterPort, PhotonNetwork.PhotonServerSettings.AppID, gameVersion);
+        if (onJoiningLobby != null)
+            onJoiningLobby.Invoke();
     }
 
     public void ConnectToBestCloudServer()
@@ -56,6 +64,8 @@ public class SimplePhotonNetworkManager : PunBehaviour
         PhotonNetwork.autoJoinLobby = true;
         PhotonNetwork.automaticallySyncScene = true;
         PhotonNetwork.ConnectToBestCloudServer(gameVersion);
+        if (onJoiningLobby != null)
+            onJoiningLobby.Invoke();
     }
 
     public void ConnectToRegion()
@@ -63,6 +73,8 @@ public class SimplePhotonNetworkManager : PunBehaviour
         PhotonNetwork.autoJoinLobby = true;
         PhotonNetwork.automaticallySyncScene = true;
         PhotonNetwork.ConnectToRegion(region, gameVersion);
+        if (onJoiningLobby != null)
+            onJoiningLobby.Invoke();
     }
 
     public void CreateRoom()
@@ -72,14 +84,28 @@ public class SimplePhotonNetworkManager : PunBehaviour
         PhotonNetwork.CreateRoom(roomName, roomOptions, null);
     }
 
+    public void JoinRoom(string roomName)
+    {
+        PhotonNetwork.JoinRoom(roomName);
+        if (onJoiningRoom != null)
+            onJoiningRoom.Invoke();
+    }
+
     public void JoinRandomRoom()
     {
         PhotonNetwork.JoinRandomRoom();
+        if (onJoiningRoom != null)
+            onJoiningRoom.Invoke();
     }
 
     public void LeaveRoom()
     {
         PhotonNetwork.LeaveRoom();
+    }
+
+    public void Disconnect()
+    {
+        PhotonNetwork.Disconnect();
     }
 
     public override void OnReceivedRoomListUpdate()
@@ -98,8 +124,7 @@ public class SimplePhotonNetworkManager : PunBehaviour
                 onReceivedRoomListUpdate.Invoke(discoveryData);
         }
     }
-
-
+    
     public override void OnFailedToConnectToPhoton(DisconnectCause cause)
     {
         if (isLog) Debug.Log("OnFailedToConnectToPhoton " + cause.ToString());
@@ -126,6 +151,13 @@ public class SimplePhotonNetworkManager : PunBehaviour
         if (isLog) Debug.Log("OnPhotonRandomJoinFailed " + codeAndMsg[0].ToString() + codeAndMsg[1].ToString());
         if (onRoomConnectError != null)
             onRoomConnectError(codeAndMsg);
+    }
+
+    public override void OnJoinedLobby()
+    {
+        if (isLog) Debug.Log("OnJoinedLobby");
+        if (onJoinedLobby != null)
+            onJoinedLobby.Invoke();
     }
 
     public override void OnCreatedRoom()
@@ -156,6 +188,8 @@ public class SimplePhotonNetworkManager : PunBehaviour
         if (isLog) Debug.Log("OnJoinedRoom");
         if (PhotonNetwork.isMasterClient)
             StartCoroutine(WaitOnlineSceneLoaded());
+        if (onJoinedRoom != null)
+            onJoinedRoom.Invoke();
     }
 
     protected IEnumerator WaitOnlineSceneLoaded()
@@ -201,6 +235,8 @@ public class SimplePhotonNetworkManager : PunBehaviour
         if (isLog) Debug.Log("OnLeftRoom");
         if (!SceneManager.GetActiveScene().name.Equals(offlineScene.SceneName))
             SceneManager.LoadScene(offlineScene.SceneName);
+        if (onLeftRoom != null)
+            onLeftRoom.Invoke();
     }
 
     public override void OnDisconnectedFromPhoton()
@@ -208,5 +244,7 @@ public class SimplePhotonNetworkManager : PunBehaviour
         if (isLog) Debug.Log("OnDisconnectedFromPhoton");
         if (!SceneManager.GetActiveScene().name.Equals(offlineScene.SceneName))
             SceneManager.LoadScene(offlineScene.SceneName);
+        if (onDisconnected != null)
+            onDisconnected.Invoke();
     }
 }
