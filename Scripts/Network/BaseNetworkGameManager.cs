@@ -89,6 +89,14 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
 
     }
 
+    public void SendKillNotify(string killerName, string victimName, string weaponId)
+    {
+        if (!PhotonNetwork.isMasterClient)
+            return;
+
+        photonView.RPC("RpcKillNotify", PhotonTargets.All, killerName, victimName, weaponId);
+    }
+
     public NetworkGameScore[] GetSortedScores()
     {
         for (var i = Characters.Count - 1; i >= 0; --i)
@@ -246,6 +254,12 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
         }
     }
 
+    [PunRPC]
+    protected void RpcKillNotify(string killerName, string victimName, string weaponId)
+    {
+        KillNotify(killerName, victimName, weaponId);
+    }
+
     protected void ResetGame()
     {
         Characters.Clear();
@@ -258,4 +272,5 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
     }
 
     protected abstract void UpdateScores(NetworkGameScore[] scores);
+    protected abstract void KillNotify(string killerName, string victimName, string weaponId);
 }
