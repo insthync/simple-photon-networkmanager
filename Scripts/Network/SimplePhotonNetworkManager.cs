@@ -34,6 +34,7 @@ public class SimplePhotonNetworkManager : PunBehaviour
     public string roomName;
     public AsyncOperation LoadSceneAsyncOp { get; protected set; }
     public SimplePhotonStartPoint[] StartPoints { get; protected set; }
+    public bool isConnectOffline { get; protected set; }
 
     protected virtual void Awake()
     {
@@ -64,9 +65,11 @@ public class SimplePhotonNetworkManager : PunBehaviour
 
     public virtual void ConnectToBestCloudServer()
     {
+        isConnectOffline = false;
         PhotonNetwork.autoJoinLobby = true;
         PhotonNetwork.automaticallySyncScene = true;
         PhotonNetwork.PhotonServerSettings.HostType = ServerSettings.HostingOption.BestRegion;
+        PhotonNetwork.offlineMode = false;
         PhotonNetwork.ConnectToBestCloudServer(gameVersion);
         if (onJoiningLobby != null)
             onJoiningLobby.Invoke();
@@ -74,16 +77,32 @@ public class SimplePhotonNetworkManager : PunBehaviour
 
     public virtual void ConnectToRegion()
     {
+        isConnectOffline = false;
         PhotonNetwork.autoJoinLobby = true;
         PhotonNetwork.automaticallySyncScene = true;
         PhotonNetwork.PhotonServerSettings.HostType = ServerSettings.HostingOption.PhotonCloud;
+        PhotonNetwork.offlineMode = false;
         PhotonNetwork.ConnectToRegion(region, gameVersion);
         if (onJoiningLobby != null)
             onJoiningLobby.Invoke();
     }
 
+    public virtual void PlayOffline()
+    {
+        isConnectOffline = true;
+        PhotonNetwork.autoJoinLobby = true;
+        PhotonNetwork.automaticallySyncScene = true;
+        if (onJoinedLobby != null)
+            onJoinedLobby.Invoke();
+    }
+
     public void CreateRoom()
     {
+        if (isConnectOffline)
+        {
+            PhotonNetwork.offlineMode = true;
+            return;
+        }
         var roomOptions = new RoomOptions();
         roomOptions.CustomRoomProperties = new Hashtable() { { CUSTOM_ROOM_ROOM_NAME, roomName } };
         roomOptions.MaxPlayers = maxConnections;
@@ -106,12 +125,21 @@ public class SimplePhotonNetworkManager : PunBehaviour
 
     public void LeaveRoom()
     {
-        PhotonNetwork.LeaveRoom();
+        if (isConnectOffline)
+            PhotonNetwork.Disconnect();
+        else
+            PhotonNetwork.LeaveRoom();
     }
 
     public void Disconnect()
     {
-        PhotonNetwork.Disconnect();
+        if (isConnectOffline)
+        {
+            if (onDisconnected != null)
+                onDisconnected.Invoke();
+        }
+        else
+            PhotonNetwork.Disconnect();
     }
 
     public override void OnReceivedRoomListUpdate()
@@ -209,6 +237,13 @@ public class SimplePhotonNetworkManager : PunBehaviour
         OnOnlineSceneChanged();
         if (PhotonNetwork.isMasterClient)
             OnPhotonPlayerConnected(PhotonNetwork.player);
+    }
+
+    public override void OnConnectedToMaster()
+    {
+        if (isLog) Debug.Log("OnConnectedToMaster");
+        if (isConnectOffline)
+            PhotonNetwork.JoinRandomRoom();
     }
 
     /// <summary>

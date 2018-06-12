@@ -127,6 +127,12 @@ public class UIPhotonNetworking : UIBase
             networkManager.ConnectToBestCloudServer();
     }
 
+    public virtual void OnClickPlayOffline()
+    {
+        var networkManager = SimplePhotonNetworkManager.Singleton;
+        networkManager.PlayOffline();
+    }
+
     public virtual void OnClickJoinRandomRoom()
     {
         var networkManager = SimplePhotonNetworkManager.Singleton;

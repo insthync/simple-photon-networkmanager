@@ -65,14 +65,20 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
             int length = 0;
             List<object> objects;
             GetSortedScoresAsObjects(out length, out objects);
-            photonView.RPC("RpcUpdateScores", PhotonTargets.All, length, objects.ToArray());
+            if (isConnectOffline)
+                RpcUpdateScores(length, objects.ToArray());
+            else
+                photonView.RPC("RpcUpdateScores", PhotonTargets.All, length, objects.ToArray());
             updateScoreTime = Time.unscaledTime;
         }
 
         if (gameRule != null && Time.unscaledTime - updateMatchTime >= 1f)
         {
             RemainsMatchTime = gameRule.RemainsMatchTime;
-            photonView.RPC("RpcMatchStatus", PhotonTargets.All, gameRule.RemainsMatchTime, gameRule.IsMatchEnded);
+            if (isConnectOffline)
+                RpcMatchStatus(gameRule.RemainsMatchTime, gameRule.IsMatchEnded);
+            else
+                photonView.RPC("RpcMatchStatus", PhotonTargets.All, gameRule.RemainsMatchTime, gameRule.IsMatchEnded);
 
             if (!IsMatchEnded && gameRule.IsMatchEnded)
             {
