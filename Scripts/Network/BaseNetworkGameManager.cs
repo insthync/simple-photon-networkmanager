@@ -47,6 +47,20 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
         return count;
     }
 
+    public override void LeaveRoom()
+    {
+        if (gameRule != null)
+            gameRule.OnStopConnection(this);
+        base.LeaveRoom();
+    }
+
+    public override void Disconnect()
+    {
+        if (gameRule != null)
+            gameRule.OnStopConnection(this);
+        base.Disconnect();
+    }
+
     protected virtual void Update()
     {
         if (PhotonNetwork.isMasterClient)

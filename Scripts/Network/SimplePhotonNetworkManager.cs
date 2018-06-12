@@ -123,7 +123,7 @@ public class SimplePhotonNetworkManager : PunBehaviour
             onJoiningRoom.Invoke();
     }
 
-    public void LeaveRoom()
+    public virtual void LeaveRoom()
     {
         if (isConnectOffline)
             PhotonNetwork.Disconnect();
@@ -131,7 +131,7 @@ public class SimplePhotonNetworkManager : PunBehaviour
             PhotonNetwork.LeaveRoom();
     }
 
-    public void Disconnect()
+    public virtual void Disconnect()
     {
         if (isConnectOffline)
         {

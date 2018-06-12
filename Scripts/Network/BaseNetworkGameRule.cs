@@ -123,6 +123,11 @@ public abstract class BaseNetworkGameRule : ScriptableObject
         IsMatchEnded = false;
     }
 
+    public virtual void OnStopConnection(BaseNetworkGameManager manager)
+    {
+
+    }
+
     public virtual void OnMasterChange(BaseNetworkGameManager manager)
     {
         networkManager = manager;
