@@ -58,6 +58,9 @@ public class UIPhotonGameCreate : UIBase
             networkGameManager.gameRule = selectedGameRule;
         }
 
+        if (inputRoomName != null)
+            networkManager.roomName = inputRoomName.text;
+
         if (inputMaxPlayer != null)
             networkManager.maxConnections = byte.Parse(inputMaxPlayer.text);
         

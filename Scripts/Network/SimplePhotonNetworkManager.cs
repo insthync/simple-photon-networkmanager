@@ -105,8 +105,9 @@ public class SimplePhotonNetworkManager : PunBehaviour
         }
         var roomOptions = new RoomOptions();
         roomOptions.CustomRoomProperties = new Hashtable() { { CUSTOM_ROOM_ROOM_NAME, roomName } };
+        roomOptions.CustomRoomPropertiesForLobby = new string[] { CUSTOM_ROOM_ROOM_NAME, CUSTOM_ROOM_PLAYER_NAME, CUSTOM_ROOM_SCENE_NAME };
         roomOptions.MaxPlayers = maxConnections;
-        PhotonNetwork.CreateRoom(roomName, roomOptions, null);
+        PhotonNetwork.CreateRoom(string.Empty, roomOptions, null);
     }
 
     public void JoinRoom(string roomName)
