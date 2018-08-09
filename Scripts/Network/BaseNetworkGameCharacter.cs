@@ -110,14 +110,14 @@ public abstract class BaseNetworkGameCharacter : PunBehaviour, System.IComparabl
         NetworkManager = networkManager;
     }
 
-    public bool CanRespawn(params object[] extraParams)
+    public virtual bool CanRespawn(params object[] extraParams)
     {
         if (NetworkManager != null)
             return NetworkManager.CanCharacterRespawn(this, extraParams);
         return true;
     }
     
-    public bool Respawn(params object[] extraParams)
+    public virtual bool Respawn(params object[] extraParams)
     {
         if (NetworkManager != null)
             return NetworkManager.RespawnCharacter(this, extraParams);
