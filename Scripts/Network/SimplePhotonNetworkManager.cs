@@ -30,6 +30,8 @@ public class SimplePhotonNetworkManager : PunBehaviour
     public string masterAddress = "localhost";
     public int masterPort = 5055;
     public CloudRegionCode region;
+    public int sendRate = 20;
+    public int sendRateOnSerialize = 10;
     public byte maxConnections;
     public string roomName;
     public AsyncOperation LoadSceneAsyncOp { get; protected set; }
@@ -45,6 +47,8 @@ public class SimplePhotonNetworkManager : PunBehaviour
         }
         Singleton = this;
         DontDestroyOnLoad(Singleton);
+        PhotonNetwork.sendRate = sendRate;
+        PhotonNetwork.sendRateOnSerialize = sendRateOnSerialize;
         StartPoints = new SimplePhotonStartPoint[0];
         // Set unique view id
         PhotonView view = GetComponent<PhotonView>();
