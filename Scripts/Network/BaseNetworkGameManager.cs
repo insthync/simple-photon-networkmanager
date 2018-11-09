@@ -76,13 +76,16 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
 
         if (Time.unscaledTime - updateScoreTime >= 1f)
         {
-            int length = 0;
-            List<object> objects;
-            GetSortedScoresAsObjects(out length, out objects);
-            if (isConnectOffline)
-                RpcUpdateScores(length, objects.ToArray());
-            else
-                photonView.RPC("RpcUpdateScores", PhotonTargets.All, length, objects.ToArray());
+            if (gameRule == null || !gameRule.IsMatchEnded)
+            {
+                int length = 0;
+                List<object> objects;
+                GetSortedScoresAsObjects(out length, out objects);
+                if (isConnectOffline)
+                    RpcUpdateScores(length, objects.ToArray());
+                else
+                    photonView.RPC("RpcUpdateScores", PhotonTargets.All, length, objects.ToArray());
+            }
             updateScoreTime = Time.unscaledTime;
         }
 
@@ -232,12 +235,15 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
         if (!PhotonNetwork.isMasterClient)
             return;
 
-        int length = 0;
-        List<object> objects;
-        GetSortedScoresAsObjects(out length, out objects);
-        photonView.RPC("RpcUpdateScores", newPlayer, length, objects.ToArray());
-        if (gameRule != null)
-            photonView.RPC("RpcMatchStatus", newPlayer, gameRule.RemainsMatchTime, gameRule.IsMatchEnded);
+        if (gameRule == null || !gameRule.IsMatchEnded)
+        {
+            int length = 0;
+            List<object> objects;
+            GetSortedScoresAsObjects(out length, out objects);
+            photonView.RPC("RpcUpdateScores", newPlayer, length, objects.ToArray());
+            if (gameRule != null)
+                photonView.RPC("RpcMatchStatus", newPlayer, gameRule.RemainsMatchTime, gameRule.IsMatchEnded);
+        }
 
         base.OnPhotonPlayerConnected(newPlayer);
     }
