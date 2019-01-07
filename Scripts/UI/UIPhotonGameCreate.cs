@@ -41,22 +41,7 @@ public class UIPhotonGameCreate : UIBase
 
     public virtual void OnClickCreateGame()
     {
-        var selectedMap = GetSelectedMap();
-        var selectedGameRule = GetSelectedGameRule();
         var networkManager = SimplePhotonNetworkManager.Singleton;
-        var networkGameManager = networkManager as BaseNetworkGameManager;
-
-        if (selectedMap != null)
-            networkManager.onlineScene.SceneName = selectedMap.scene.SceneName;
-
-        if (selectedGameRule != null && networkGameManager != null)
-        {
-            selectedGameRule.botCount = inputBotCount == null ? selectedGameRule.DefaultBotCount : int.Parse(inputBotCount.text);
-            selectedGameRule.matchTime = inputMatchTime == null ? selectedGameRule.DefaultMatchTime : int.Parse(inputMatchTime.text);
-            selectedGameRule.matchKill = inputMatchKill == null ? selectedGameRule.DefaultMatchKill : int.Parse(inputMatchKill.text);
-            selectedGameRule.matchScore = inputMatchScore == null ? selectedGameRule.DefaultMatchScore : int.Parse(inputMatchScore.text);
-            networkGameManager.gameRule = selectedGameRule;
-        }
 
         if (inputRoomName != null)
             networkManager.roomName = inputRoomName.text;
@@ -79,6 +64,8 @@ public class UIPhotonGameCreate : UIBase
             Debug.LogError("Invalid map selection");
             return;
         }
+
+        SimplePhotonNetworkManager.Singleton.SetRoomOnlineScene(selected.scene);
 
         previewImage.sprite = selected.previewImage;
         gameRules = selected.availableGameRules;
@@ -160,6 +147,7 @@ public class UIPhotonGameCreate : UIBase
         int botCount = 0;
         if (!int.TryParse(value, out botCount))
             inputBotCount.text = botCount.ToString();
+        UpdateNetworkManager();
     }
 
     public void OnMatchTimeChanged(string value)
@@ -167,6 +155,7 @@ public class UIPhotonGameCreate : UIBase
         int matchTime = 0;
         if (!int.TryParse(value, out matchTime))
             inputMatchTime.text = matchTime.ToString();
+        UpdateNetworkManager();
     }
 
     public void OnMatchKillChanged(string value)
@@ -174,6 +163,7 @@ public class UIPhotonGameCreate : UIBase
         int matchKill = 0;
         if (!int.TryParse(value, out matchKill))
             inputMatchKill.text = matchKill.ToString();
+        UpdateNetworkManager();
     }
 
     public void OnMatchScoreChanged(string value)
@@ -181,6 +171,18 @@ public class UIPhotonGameCreate : UIBase
         int matchScore = 0;
         if (!int.TryParse(value, out matchScore))
             inputMatchScore.text = matchScore.ToString();
+        UpdateNetworkManager();
+    }
+
+    protected void UpdateNetworkManager()
+    {
+        var selected = GetSelectedGameRule();
+        var networkGameManager = SimplePhotonNetworkManager.Singleton as BaseNetworkGameManager;
+        selected.botCount = inputBotCount == null ? selected.DefaultBotCount : int.Parse(inputBotCount.text);
+        selected.matchTime = inputMatchTime == null ? selected.DefaultMatchTime : int.Parse(inputMatchTime.text);
+        selected.matchKill = inputMatchKill == null ? selected.DefaultMatchKill : int.Parse(inputMatchKill.text);
+        selected.matchScore = inputMatchScore == null ? selected.DefaultMatchScore : int.Parse(inputMatchScore.text);
+        networkGameManager.gameRule = selected;
     }
 
     public override void Show()
