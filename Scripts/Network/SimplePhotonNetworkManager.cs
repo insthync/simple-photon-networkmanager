@@ -145,6 +145,30 @@ public class SimplePhotonNetworkManager : PunBehaviour
         PhotonNetwork.CreateRoom(string.Empty, roomOptions, null);
     }
 
+    public void SetRoomName(string roomName)
+    {
+        // If room not created, set data to field to use later
+        this.roomName = roomName;
+        if (PhotonNetwork.inRoom && PhotonNetwork.isMasterClient)
+        {
+            var customProperties = PhotonNetwork.room.CustomProperties;
+            customProperties.Add(CUSTOM_ROOM_ROOM_NAME, roomName);
+            PhotonNetwork.room.SetCustomProperties(customProperties);
+        }
+    }
+
+    public void SetRoomOnlineScene(SceneNameField onlineScene)
+    {
+        // If room not created, set data to field to use later
+        this.onlineScene = onlineScene;
+        if (PhotonNetwork.inRoom && PhotonNetwork.isMasterClient)
+        {
+            var customProperties = PhotonNetwork.room.CustomProperties;
+            customProperties.Add(CUSTOM_ROOM_SCENE_NAME, onlineScene.SceneName);
+            PhotonNetwork.room.SetCustomProperties(customProperties);
+        }
+    }
+
     public void JoinRoom(string roomName)
     {
         PhotonNetwork.JoinRoom(roomName);
@@ -237,7 +261,9 @@ public class SimplePhotonNetworkManager : PunBehaviour
     public override void OnCreatedRoom()
     {
         if (isLog) Debug.Log("OnCreatedRoom");
+        // Set room information
         var customProperties = PhotonNetwork.room.CustomProperties;
+        customProperties.Add(CUSTOM_ROOM_ROOM_NAME, roomName);
         customProperties.Add(CUSTOM_ROOM_PLAYER_NAME, PhotonNetwork.playerName);
         customProperties.Add(CUSTOM_ROOM_SCENE_NAME, onlineScene.SceneName);
         customProperties.Add(CUSTOM_ROOM_STATE, (byte)RoomState.Waiting);
