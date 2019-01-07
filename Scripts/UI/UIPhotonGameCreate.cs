@@ -36,7 +36,6 @@ public class UIPhotonGameCreate : UIBase
 
     public virtual void OnClickCreateGame()
     {
-
         if (inputRoomName != null)
             SimplePhotonNetworkManager.Singleton.roomName = inputRoomName.text;
 

@@ -16,6 +16,7 @@ public class UIPhotonNetworking : UIBase
     public UIBase uiDisconnected;
     public UIBase uiConnected;
     public UIEnterNetworkAddress uiEnterNetworkAddress;
+    public UIPhotonWaitingRoom uiWaitingRoom;
     public UIPhotonNetworkingEntry entryPrefab;
     public Transform gameListContainer;
     private readonly Dictionary<string, UIPhotonNetworkingEntry> entries = new Dictionary<string, UIPhotonNetworkingEntry>();
@@ -43,6 +44,8 @@ public class UIPhotonNetworking : UIBase
 
         SimplePhotonNetworkManager.onReceivedRoomListUpdate += OnReceivedRoomListUpdateCallback;
         SimplePhotonNetworkManager.onJoinedLobby += OnJoinedLobbyCallback;
+        SimplePhotonNetworkManager.onJoinedRoom += OnJoinedRoomCallback;
+        SimplePhotonNetworkManager.onLeftRoom += OnLeftRoomCallback;
         SimplePhotonNetworkManager.onDisconnected += OnDisconnectedCallback;
     }
 
@@ -50,6 +53,8 @@ public class UIPhotonNetworking : UIBase
     {
         SimplePhotonNetworkManager.onReceivedRoomListUpdate -= OnReceivedRoomListUpdateCallback;
         SimplePhotonNetworkManager.onJoinedLobby -= OnJoinedLobbyCallback;
+        SimplePhotonNetworkManager.onJoinedRoom -= OnJoinedRoomCallback;
+        SimplePhotonNetworkManager.onLeftRoom -= OnLeftRoomCallback;
         SimplePhotonNetworkManager.onDisconnected -= OnDisconnectedCallback;
     }
 
@@ -88,6 +93,18 @@ public class UIPhotonNetworking : UIBase
 
         if (uiConnected != null)
             uiConnected.Show();
+    }
+
+    private void OnJoinedRoomCallback()
+    {
+        if (uiWaitingRoom != null)
+            uiWaitingRoom.Show();
+    }
+
+    private void OnLeftRoomCallback()
+    {
+        if (uiWaitingRoom != null)
+            uiWaitingRoom.Hide();
     }
 
     private void OnDisconnectedCallback()
@@ -143,5 +160,10 @@ public class UIPhotonNetworking : UIBase
     {
         var networkManager = SimplePhotonNetworkManager.Singleton;
         networkManager.Disconnect();
+    }
+
+    public virtual void OnClickCreateWaitingRoom()
+    {
+        SimplePhotonNetworkManager.Singleton.CreateWaitingRoom();
     }
 }

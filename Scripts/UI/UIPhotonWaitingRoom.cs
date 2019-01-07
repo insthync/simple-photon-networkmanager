@@ -4,25 +4,27 @@ using UnityEngine;
 
 public class UIPhotonWaitingRoom : UIPhotonGameCreate
 {
-    public override void Show()
+    public virtual void OnClickLeaveRoom()
     {
-        base.Show();
-        SimplePhotonNetworkManager.onJoinedRoom -= OnJoinedRoom;
+        SimplePhotonNetworkManager.Singleton.LeaveRoom();
     }
 
-    public virtual void OnClickCreateWaitingRoom()
-    {
-        SimplePhotonNetworkManager.Singleton.CreateWaitingRoom();
-        SimplePhotonNetworkManager.onJoinedRoom += OnJoinedRoom;
-    }
-
-    public override void OnClickCreateGame()
+    public virtual void OnClickStartGame()
     {
         SimplePhotonNetworkManager.Singleton.StartGame();
     }
 
-    private void OnJoinedRoom()
+    public override void OnClickCreateGame()
     {
-        Show();
+        Debug.LogWarning("Cannot create game in waiting room");
+    }
+
+    private void Update()
+    {
+        /* TODO: Implement this
+        PhotonNetwork.playerList
+        PhotonNetwork.player
+        PhotonNetwork.otherPlayers
+        */
     }
 }
