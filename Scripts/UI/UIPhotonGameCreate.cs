@@ -15,41 +15,35 @@ public class UIPhotonGameCreate : UIBase
         public BaseNetworkGameRule[] availableGameRules;
     }
 
-    public int maxPlayerCustomizable = 32;
+    public string defaultRoomName = "Let's play together !!";
+    public byte maxPlayerCustomizable = 32;
     public InputField inputRoomName;
     public InputField inputMaxPlayer;
-    [Header("Match Bot Count")]
-    public GameObject containerBotCount;
+    [Header("Match Bot Count")] public GameObject containerBotCount;
     public InputField inputBotCount;
-    [Header("Match Time")]
-    public GameObject containerMatchTime;
+    [Header("Match Time")] public GameObject containerMatchTime;
     public InputField inputMatchTime;
-    [Header("Match Kill")]
-    public GameObject containerMatchKill;
+    [Header("Match Kill")] public GameObject containerMatchKill;
     public InputField inputMatchKill;
-    [Header("Match Score")]
-    public GameObject containerMatchScore;
+    [Header("Match Score")] public GameObject containerMatchScore;
     public InputField inputMatchScore;
-    [Header("Maps")]
-    public Image previewImage;
+    [Header("Maps")] public Image previewImage;
     public MapSelection[] maps;
     public Dropdown mapList;
-    [Header("Game rules")]
-    public Dropdown gameRuleList;
+    [Header("Game rules")] public Dropdown gameRuleList;
 
     private BaseNetworkGameRule[] gameRules;
 
     public virtual void OnClickCreateGame()
     {
-        var networkManager = SimplePhotonNetworkManager.Singleton;
 
         if (inputRoomName != null)
-            networkManager.roomName = inputRoomName.text;
+            SimplePhotonNetworkManager.Singleton.roomName = inputRoomName.text;
 
         if (inputMaxPlayer != null)
-            networkManager.maxConnections = byte.Parse(inputMaxPlayer.text);
-        
-        networkManager.CreateRoom();
+            SimplePhotonNetworkManager.Singleton.maxConnections = byte.Parse(inputMaxPlayer.text);
+
+        SimplePhotonNetworkManager.Singleton.CreateRoom();
     }
 
     public void OnMapListChange(int value)
@@ -58,7 +52,7 @@ public class UIPhotonGameCreate : UIBase
             gameRuleList.ClearOptions();
 
         var selected = GetSelectedMap();
-        
+
         if (selected == null)
         {
             Debug.LogError("Invalid map selection");
@@ -106,42 +100,50 @@ public class UIPhotonGameCreate : UIBase
         {
             inputBotCount.contentType = InputField.ContentType.IntegerNumber;
             inputBotCount.text = selected.DefaultBotCount.ToString();
-            inputBotCount.onValueChanged.RemoveListener(OnBotCountChanged);
-            inputBotCount.onValueChanged.AddListener(OnBotCountChanged);
+            inputBotCount.onEndEdit.RemoveListener(OnBotCountChanged);
+            inputBotCount.onEndEdit.AddListener(OnBotCountChanged);
         }
 
         if (inputMatchTime != null)
         {
             inputMatchTime.contentType = InputField.ContentType.IntegerNumber;
             inputMatchTime.text = selected.DefaultMatchTime.ToString();
-            inputMatchTime.onValueChanged.RemoveListener(OnMatchTimeChanged);
-            inputMatchTime.onValueChanged.AddListener(OnMatchTimeChanged);
+            inputMatchTime.onEndEdit.RemoveListener(OnMatchTimeChanged);
+            inputMatchTime.onEndEdit.AddListener(OnMatchTimeChanged);
         }
 
         if (inputMatchKill != null)
         {
             inputMatchKill.contentType = InputField.ContentType.IntegerNumber;
             inputMatchKill.text = selected.DefaultMatchKill.ToString();
-            inputMatchKill.onValueChanged.RemoveListener(OnMatchKillChanged);
-            inputMatchKill.onValueChanged.AddListener(OnMatchKillChanged);
+            inputMatchKill.onEndEdit.RemoveListener(OnMatchKillChanged);
+            inputMatchKill.onEndEdit.AddListener(OnMatchKillChanged);
         }
 
         if (inputMatchScore != null)
         {
             inputMatchScore.contentType = InputField.ContentType.IntegerNumber;
             inputMatchScore.text = selected.DefaultMatchScore.ToString();
-            inputMatchScore.onValueChanged.RemoveListener(OnMatchScoreChanged);
-            inputMatchScore.onValueChanged.AddListener(OnMatchScoreChanged);
+            inputMatchScore.onEndEdit.RemoveListener(OnMatchScoreChanged);
+            inputMatchScore.onEndEdit.AddListener(OnMatchScoreChanged);
         }
 
         UpdateNetworkManager();
     }
 
+    public void OnRoomNameChanged(string value)
+    {
+        SimplePhotonNetworkManager.Singleton.SetRoomName(value);
+    }
+
     public void OnMaxPlayerChanged(string value)
     {
-        int maxPlayer = maxPlayerCustomizable;
-        if (!int.TryParse(value, out maxPlayer) || maxPlayer > maxPlayerCustomizable)
+        byte maxPlayer = maxPlayerCustomizable;
+        if (!byte.TryParse(value, out maxPlayer) || maxPlayer > maxPlayerCustomizable)
+        {
+            SimplePhotonNetworkManager.Singleton.maxConnections = maxPlayer;
             inputMaxPlayer.text = maxPlayer.ToString();
+        }
     }
 
     public void OnBotCountChanged(string value)
@@ -199,12 +201,21 @@ public class UIPhotonGameCreate : UIBase
             mapList.onValueChanged.AddListener(OnMapListChange);
         }
 
+        if (inputRoomName != null)
+        {
+            inputRoomName.text = defaultRoomName;
+            inputRoomName.onEndEdit.RemoveListener(OnRoomNameChanged);
+            inputRoomName.onEndEdit.AddListener(OnRoomNameChanged);
+            OnRoomNameChanged(defaultRoomName);
+        }
+
         if (inputMaxPlayer != null)
         {
             inputMaxPlayer.contentType = InputField.ContentType.IntegerNumber;
             inputMaxPlayer.text = maxPlayerCustomizable.ToString();
-            inputMaxPlayer.onValueChanged.RemoveListener(OnMaxPlayerChanged);
-            inputMaxPlayer.onValueChanged.AddListener(OnMaxPlayerChanged);
+            inputMaxPlayer.onEndEdit.RemoveListener(OnMaxPlayerChanged);
+            inputMaxPlayer.onEndEdit.AddListener(OnMaxPlayerChanged);
+            OnMaxPlayerChanged(maxPlayerCustomizable.ToString());
         }
 
         OnMapListChange(0);
