@@ -133,6 +133,8 @@ public class UIPhotonGameCreate : UIBase
             inputMatchScore.onValueChanged.RemoveListener(OnMatchScoreChanged);
             inputMatchScore.onValueChanged.AddListener(OnMatchScoreChanged);
         }
+
+        UpdateNetworkManager();
     }
 
     public void OnMaxPlayerChanged(string value)
