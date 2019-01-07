@@ -7,10 +7,17 @@ using Hashtable = ExitGames.Client.Photon.Hashtable;
 
 public class SimplePhotonNetworkManager : PunBehaviour
 {
+    public enum RoomState : byte
+    {
+        Waiting,
+        Playing,
+    }
+
     public const int UNIQUE_VIEW_ID = 999;
     public const string CUSTOM_ROOM_ROOM_NAME = "R";
     public const string CUSTOM_ROOM_PLAYER_NAME = "P";
     public const string CUSTOM_ROOM_SCENE_NAME = "S";
+    public const string CUSTOM_ROOM_STATE = "St";
     public static SimplePhotonNetworkManager Singleton { get; protected set; }
     public static event System.Action<List<NetworkDiscoveryData>> onReceivedRoomListUpdate;
     public static event System.Action<DisconnectCause> onConnectionError;
@@ -37,6 +44,7 @@ public class SimplePhotonNetworkManager : PunBehaviour
     public AsyncOperation LoadSceneAsyncOp { get; protected set; }
     public SimplePhotonStartPoint[] StartPoints { get; protected set; }
     public bool isConnectOffline { get; protected set; }
+    private bool startGameOnRoomCreated;
 
     protected virtual void Awake()
     {
@@ -55,6 +63,12 @@ public class SimplePhotonNetworkManager : PunBehaviour
         if (view == null)
             view = gameObject.AddComponent<PhotonView>();
         view.viewID = UNIQUE_VIEW_ID;
+        SceneManager.activeSceneChanged += OnSceneChanged;
+    }
+
+    protected virtual void OnDestroy()
+    {
+        SceneManager.activeSceneChanged -= OnSceneChanged;
     }
 
     public virtual void ConnectToMaster()
@@ -107,9 +121,26 @@ public class SimplePhotonNetworkManager : PunBehaviour
             PhotonNetwork.offlineMode = true;
             return;
         }
+        SetupAndCreateRoom();
+        startGameOnRoomCreated = true;
+    }
+
+    public void CreateWaitingRoom()
+    {
+        if (isConnectOffline)
+        {
+            PhotonNetwork.offlineMode = true;
+            return;
+        }
+        SetupAndCreateRoom();
+        startGameOnRoomCreated = false;
+    }
+
+    private void SetupAndCreateRoom()
+    {
         var roomOptions = new RoomOptions();
         roomOptions.CustomRoomProperties = new Hashtable() { { CUSTOM_ROOM_ROOM_NAME, roomName } };
-        roomOptions.CustomRoomPropertiesForLobby = new string[] { CUSTOM_ROOM_ROOM_NAME, CUSTOM_ROOM_PLAYER_NAME, CUSTOM_ROOM_SCENE_NAME };
+        roomOptions.CustomRoomPropertiesForLobby = new string[] { CUSTOM_ROOM_ROOM_NAME, CUSTOM_ROOM_PLAYER_NAME, CUSTOM_ROOM_SCENE_NAME, CUSTOM_ROOM_STATE };
         roomOptions.MaxPlayers = maxConnections;
         PhotonNetwork.CreateRoom(string.Empty, roomOptions, null);
     }
@@ -159,6 +190,7 @@ public class SimplePhotonNetworkManager : PunBehaviour
             discoveryData.roomName = (string)customProperties[CUSTOM_ROOM_ROOM_NAME];
             discoveryData.playerName = (string)customProperties[CUSTOM_ROOM_PLAYER_NAME];
             discoveryData.sceneName = (string)customProperties[CUSTOM_ROOM_SCENE_NAME];
+            discoveryData.state = (byte)customProperties[CUSTOM_ROOM_STATE];
             discoveryData.numPlayers = room.PlayerCount;
             discoveryData.maxPlayers = room.MaxPlayers;
             foundRooms.Add(discoveryData);
@@ -208,8 +240,10 @@ public class SimplePhotonNetworkManager : PunBehaviour
         var customProperties = PhotonNetwork.room.CustomProperties;
         customProperties.Add(CUSTOM_ROOM_PLAYER_NAME, PhotonNetwork.playerName);
         customProperties.Add(CUSTOM_ROOM_SCENE_NAME, onlineScene.SceneName);
+        customProperties.Add(CUSTOM_ROOM_STATE, (byte)RoomState.Waiting);
         PhotonNetwork.room.SetCustomProperties(customProperties);
-        StartCoroutine(LoadOnlineScene());
+        if (startGameOnRoomCreated)
+            StartCoroutine(LoadOnlineScene());
     }
 
     protected IEnumerator LoadOnlineScene()
@@ -222,26 +256,33 @@ public class SimplePhotonNetworkManager : PunBehaviour
                 yield return null;
             }
         }
+        // Change room state to playing
+        var customProperties = PhotonNetwork.room.CustomProperties;
+        customProperties[CUSTOM_ROOM_STATE] = (byte)RoomState.Playing;
+        PhotonNetwork.room.SetCustomProperties(customProperties);
+        // Setup start points for master client
         StartPoints = FindObjectsOfType<SimplePhotonStartPoint>();
     }
 
     public override void OnJoinedRoom()
     {
         if (isLog) Debug.Log("OnJoinedRoom");
-        StartCoroutine(WaitOnlineSceneLoaded());
+        if (PhotonNetwork.isMasterClient && startGameOnRoomCreated)
+        {
+            // If master client joined room, wait for scene change if needed
+            StartCoroutine(MasterWaitOnlineSceneLoaded());
+        }
         if (onJoinedRoom != null)
             onJoinedRoom.Invoke();
     }
 
-    protected IEnumerator WaitOnlineSceneLoaded()
+    protected IEnumerator MasterWaitOnlineSceneLoaded()
     {
         while (LoadSceneAsyncOp != null && !LoadSceneAsyncOp.isDone)
         {
             yield return null;
         }
-        OnOnlineSceneChanged();
-        if (PhotonNetwork.isMasterClient)
-            OnPhotonPlayerConnected(PhotonNetwork.player);
+        OnPhotonPlayerConnected(PhotonNetwork.player);
     }
 
     public override void OnConnectedToMaster()
@@ -264,6 +305,14 @@ public class SimplePhotonNetworkManager : PunBehaviour
         if (!PhotonNetwork.isMasterClient)
             return;
         photonView.RPC("RpcAddPlayer", newPlayer);
+    }
+
+    private void OnSceneChanged(Scene current, Scene next)
+    {
+        if (next.name == onlineScene.SceneName && PhotonNetwork.inRoom)
+        {
+            OnOnlineSceneChanged();
+        }
     }
     
     [PunRPC]

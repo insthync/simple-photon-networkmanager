@@ -10,6 +10,9 @@ public class UIPhotonNetworkingEntry : UnityEngine.MonoBehaviour
     public Text textPlayerName;
     public Text textSceneName;
     public Text textPlayerCount;
+    public Text textRoomState;
+    public string roomStateWaiting = "Waiting";
+    public string roomStatePlaying = "Playing";
     private NetworkDiscoveryData _data;
     public void SetData(NetworkDiscoveryData data)
     {
@@ -22,6 +25,18 @@ public class UIPhotonNetworkingEntry : UnityEngine.MonoBehaviour
             textSceneName.text = data.sceneName;
         if (textPlayerCount != null)
             textPlayerCount.text = data.numPlayers + "/" + data.maxPlayers;
+        if (textRoomState != null)
+        {
+            switch ((SimplePhotonNetworkManager.RoomState)data.state)
+            {
+                case SimplePhotonNetworkManager.RoomState.Waiting:
+                    textRoomState.text = roomStateWaiting;
+                    break;
+                case SimplePhotonNetworkManager.RoomState.Playing:
+                    textRoomState.text = roomStatePlaying;
+                    break;
+            }
+        }
     }
 
     public virtual void OnClickJoinButton()
