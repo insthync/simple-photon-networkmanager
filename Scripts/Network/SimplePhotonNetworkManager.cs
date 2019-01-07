@@ -243,7 +243,24 @@ public class SimplePhotonNetworkManager : PunBehaviour
         customProperties.Add(CUSTOM_ROOM_STATE, (byte)RoomState.Waiting);
         PhotonNetwork.room.SetCustomProperties(customProperties);
         if (startGameOnRoomCreated)
-            StartCoroutine(LoadOnlineScene());
+            StartGame();
+    }
+
+    public void StartGame()
+    {
+        if (!PhotonNetwork.inRoom)
+        {
+            Debug.LogError("Player not joined room, cannot start game");
+            return;
+        }
+
+        if (!PhotonNetwork.isMasterClient)
+        {
+            Debug.LogError("Player is not master client, cannot start game");
+            return;
+        }
+
+        StartCoroutine(LoadOnlineScene());
     }
 
     protected IEnumerator LoadOnlineScene()
