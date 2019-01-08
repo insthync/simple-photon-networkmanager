@@ -13,26 +13,33 @@ public class SimplePhotonNetworkManager : PunBehaviour
         Playing,
     }
 
+    public enum PlayerState : byte
+    {
+        Ready,
+        NotReady,
+    }
+
     public const int UNIQUE_VIEW_ID = 999;
     public const string CUSTOM_ROOM_ROOM_NAME = "R";
     public const string CUSTOM_ROOM_PLAYER_ID = "Id";
     public const string CUSTOM_ROOM_PLAYER_NAME = "P";
     public const string CUSTOM_ROOM_SCENE_NAME = "S";
     public const string CUSTOM_ROOM_STATE = "St";
+    public const string CUSTOM_PLAYER_STATE = "St";
     public static SimplePhotonNetworkManager Singleton { get; protected set; }
-    public static event System.Action<List<NetworkDiscoveryData>> onReceivedRoomListUpdate;
-    public static event System.Action<DisconnectCause> onConnectionError;
-    public static event System.Action<object[]> onRoomConnectError;
-    public static event System.Action onJoiningLobby;
-    public static event System.Action onJoinedLobby;
-    public static event System.Action onJoiningRoom;
-    public static event System.Action onJoinedRoom;
-    public static event System.Action onLeftRoom;
-    public static event System.Action onDisconnected;
-    public static event System.Action<PhotonPlayer> onPlayerConnected;
-    public static event System.Action<PhotonPlayer> onPlayerDisconnected;
-    public static event System.Action<object[]> onPlayerPropertiesChanged;
-    public static event System.Action<Hashtable> onCustomRoomPropertiesChanged;
+    public static System.Action<List<NetworkDiscoveryData>> onReceivedRoomListUpdate;
+    public static System.Action<DisconnectCause> onConnectionError;
+    public static System.Action<object[]> onRoomConnectError;
+    public static System.Action onJoiningLobby;
+    public static System.Action onJoinedLobby;
+    public static System.Action onJoiningRoom;
+    public static System.Action onJoinedRoom;
+    public static System.Action onLeftRoom;
+    public static System.Action onDisconnected;
+    public static System.Action<PhotonPlayer> onPlayerConnected;
+    public static System.Action<PhotonPlayer> onPlayerDisconnected;
+    public static System.Action<object[]> onPlayerPropertiesChanged;
+    public static System.Action<Hashtable> onCustomRoomPropertiesChanged;
 
     public bool isLog;
     public SceneNameField offlineScene;
