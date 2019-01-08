@@ -102,6 +102,10 @@ public class UIPhotonWaitingRoom : UIBase
             BaseNetworkGameInstance.GameRules.TryGetValue(gameRuleObject.ToString(), out gameRule))
             textGameRule.text = gameRule == null ? "Unknow" : gameRule.Title;
 
+        waitingPlayerListRoot.SetActive(!gameRule.IsTeamGameplay);
+        waitingPlayerTeamAListRoot.SetActive(gameRule.IsTeamGameplay);
+        waitingPlayerTeamBListRoot.SetActive(gameRule.IsTeamGameplay);
+
         object botCountObject;
         if (textBotCount != null &&
             customProperties.TryGetValue(BaseNetworkGameManager.CUSTOM_ROOM_GAME_RULE_BOT_COUNT, out botCountObject))

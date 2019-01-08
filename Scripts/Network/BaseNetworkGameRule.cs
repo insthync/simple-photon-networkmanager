@@ -45,6 +45,7 @@ public abstract class BaseNetworkGameRule : ScriptableObject
     public virtual bool HasOptionMatchTime { get { return false; } }
     public virtual bool HasOptionMatchKill { get { return false; } }
     public virtual bool HasOptionMatchScore { get { return false; } }
+    public virtual bool IsTeamGameplay { get { return false; } }
     public virtual bool ShowZeroScoreWhenDead { get { return false; } }
     public virtual bool ShowZeroKillCountWhenDead { get { return false; } }
     public virtual bool ShowZeroAssistCountWhenDead { get { return false; } }
