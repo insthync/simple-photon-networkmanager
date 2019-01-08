@@ -36,13 +36,12 @@ public class UIPhotonGameCreate : UIBase
 
     public virtual void OnClickCreateGame()
     {
-        if (inputRoomName != null)
-            SimplePhotonNetworkManager.Singleton.roomName = inputRoomName.text;
-
-        if (inputMaxPlayer != null)
-            SimplePhotonNetworkManager.Singleton.maxConnections = byte.Parse(inputMaxPlayer.text);
-
         SimplePhotonNetworkManager.Singleton.CreateRoom();
+    }
+
+    public virtual void OnClickCreateWaitingRoom()
+    {
+        SimplePhotonNetworkManager.Singleton.CreateWaitingRoom();
     }
 
     public void OnMapListChange(int value)
