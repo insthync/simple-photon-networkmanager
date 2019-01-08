@@ -15,8 +15,8 @@ public class SimplePhotonNetworkManager : PunBehaviour
 
     public enum PlayerState : byte
     {
-        Ready,
         NotReady,
+        Ready,
     }
 
     public const int UNIQUE_VIEW_ID = 999;
@@ -38,7 +38,7 @@ public class SimplePhotonNetworkManager : PunBehaviour
     public static System.Action onDisconnected;
     public static System.Action<PhotonPlayer> onPlayerConnected;
     public static System.Action<PhotonPlayer> onPlayerDisconnected;
-    public static System.Action<object[]> onPlayerPropertiesChanged;
+    public static System.Action<PhotonPlayer, Hashtable> onPlayerPropertiesChanged;
     public static System.Action<Hashtable> onCustomRoomPropertiesChanged;
 
     public bool isLog;
@@ -407,7 +407,7 @@ public class SimplePhotonNetworkManager : PunBehaviour
     {
         if (isLog) Debug.Log("OnPhotonPlayerPropertiesChanged");
         if (onPlayerPropertiesChanged != null)
-            onPlayerPropertiesChanged.Invoke(playerAndUpdatedProps);
+            onPlayerPropertiesChanged.Invoke((PhotonPlayer)playerAndUpdatedProps[0], (Hashtable)playerAndUpdatedProps[1]);
     }
 
     public override void OnPhotonCustomRoomPropertiesChanged(Hashtable propertiesThatChanged)
@@ -423,21 +423,22 @@ public class SimplePhotonNetworkManager : PunBehaviour
         {
             // Send client ready to spawn player at master client
             OnOnlineSceneChanged();
-            photonView.RPC("RpcPlayerReady", PhotonTargets.MasterClient, PhotonNetwork.player.ID);
+            photonView.RPC("RpcPlayerSceneChanged", PhotonTargets.MasterClient, PhotonNetwork.player.ID);
         }
     }
-    
-    [PunRPC]
-    protected virtual void RpcAddPlayer()
+
+    public void TogglePlayerReady()
     {
-        Vector3 position = Vector3.zero;
-        var rotation = Quaternion.identity;
-        RandomStartPoint(out position, out rotation);
-        PhotonNetwork.Instantiate(playerPrefab.name, position, rotation, 0);
+        if (!PhotonNetwork.inRoom)
+        {
+            Debug.LogError("Cannot toggle ready state because you are not in room");
+            return;
+        }
+
+        photonView.RPC("RpcTogglePlayerReady", PhotonTargets.MasterClient, PhotonNetwork.player.ID);
     }
 
-    [PunRPC]
-    protected virtual void RpcPlayerReady(int id)
+    public PhotonPlayer GetPlayerById(int id)
     {
         PhotonPlayer foundPlayer = null;
         foreach (var player in PhotonNetwork.playerList)
@@ -448,9 +449,46 @@ public class SimplePhotonNetworkManager : PunBehaviour
                 break;
             }
         }
+        return foundPlayer;
+    }
 
+    [PunRPC]
+    protected virtual void RpcAddPlayer()
+    {
+        Vector3 position = Vector3.zero;
+        var rotation = Quaternion.identity;
+        RandomStartPoint(out position, out rotation);
+        PhotonNetwork.Instantiate(playerPrefab.name, position, rotation, 0);
+    }
+
+    [PunRPC]
+    protected virtual void RpcPlayerSceneChanged(int id)
+    {
+        PhotonPlayer foundPlayer = GetPlayerById(id);
         if (foundPlayer != null)
             photonView.RPC("RpcAddPlayer", foundPlayer);
+    }
+
+    [PunRPC]
+    protected virtual void RpcTogglePlayerReady(int id)
+    {
+        PhotonPlayer foundPlayer = GetPlayerById(id);
+        if (foundPlayer != null)
+        {
+            Hashtable customProperties = foundPlayer.CustomProperties;
+            PlayerState state = PlayerState.NotReady;
+            object stateObj;
+            if (customProperties.TryGetValue(CUSTOM_PLAYER_STATE, out stateObj))
+                state = (PlayerState)(byte)stateObj;
+            // Toggle state
+            if (state == PlayerState.NotReady)
+                state = PlayerState.Ready;
+            else if (state == PlayerState.Ready)
+                state = PlayerState.NotReady;
+            // Set state property
+            customProperties[CUSTOM_PLAYER_STATE] = (byte) state;
+            foundPlayer.SetCustomProperties(customProperties);
+        }
     }
 
     public bool RandomStartPoint(out Vector3 position, out Quaternion rotation)
