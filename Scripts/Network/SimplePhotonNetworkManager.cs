@@ -15,6 +15,7 @@ public class SimplePhotonNetworkManager : PunBehaviour
 
     public const int UNIQUE_VIEW_ID = 999;
     public const string CUSTOM_ROOM_ROOM_NAME = "R";
+    public const string CUSTOM_ROOM_PLAYER_ID = "Id";
     public const string CUSTOM_ROOM_PLAYER_NAME = "P";
     public const string CUSTOM_ROOM_SCENE_NAME = "S";
     public const string CUSTOM_ROOM_STATE = "St";
@@ -28,6 +29,10 @@ public class SimplePhotonNetworkManager : PunBehaviour
     public static event System.Action onJoinedRoom;
     public static event System.Action onLeftRoom;
     public static event System.Action onDisconnected;
+    public static event System.Action<PhotonPlayer> onPlayerConnected;
+    public static event System.Action<PhotonPlayer> onPlayerDisconnected;
+    public static event System.Action<object[]> onPlayerPropertiesChanged;
+    public static event System.Action<Hashtable> onCustomRoomPropertiesChanged;
 
     public bool isLog;
     public SceneNameField offlineScene;
@@ -139,8 +144,7 @@ public class SimplePhotonNetworkManager : PunBehaviour
     private void SetupAndCreateRoom()
     {
         var roomOptions = new RoomOptions();
-        roomOptions.CustomRoomProperties = new Hashtable() { { CUSTOM_ROOM_ROOM_NAME, roomName } };
-        roomOptions.CustomRoomPropertiesForLobby = new string[] { CUSTOM_ROOM_ROOM_NAME, CUSTOM_ROOM_PLAYER_NAME, CUSTOM_ROOM_SCENE_NAME, CUSTOM_ROOM_STATE };
+        roomOptions.CustomRoomPropertiesForLobby = new string[] { CUSTOM_ROOM_ROOM_NAME, CUSTOM_ROOM_PLAYER_ID, CUSTOM_ROOM_PLAYER_NAME, CUSTOM_ROOM_SCENE_NAME, CUSTOM_ROOM_STATE };
         roomOptions.MaxPlayers = maxConnections;
         PhotonNetwork.CreateRoom(string.Empty, roomOptions, null);
     }
@@ -212,6 +216,7 @@ public class SimplePhotonNetworkManager : PunBehaviour
             var discoveryData = new NetworkDiscoveryData();
             discoveryData.name = room.Name;
             discoveryData.roomName = (string)customProperties[CUSTOM_ROOM_ROOM_NAME];
+            discoveryData.playerId = (int)customProperties[CUSTOM_ROOM_PLAYER_ID];
             discoveryData.playerName = (string)customProperties[CUSTOM_ROOM_PLAYER_NAME];
             discoveryData.sceneName = (string)customProperties[CUSTOM_ROOM_SCENE_NAME];
             discoveryData.state = (byte)customProperties[CUSTOM_ROOM_STATE];
@@ -264,6 +269,7 @@ public class SimplePhotonNetworkManager : PunBehaviour
         // Set room information
         var customProperties = PhotonNetwork.room.CustomProperties;
         customProperties[CUSTOM_ROOM_ROOM_NAME] = roomName;
+        customProperties[CUSTOM_ROOM_PLAYER_ID] = PhotonNetwork.player.ID;
         customProperties[CUSTOM_ROOM_PLAYER_NAME] = PhotonNetwork.playerName;
         customProperties[CUSTOM_ROOM_SCENE_NAME] = onlineScene.SceneName;
         customProperties[CUSTOM_ROOM_STATE] = (byte) RoomState.Waiting;
@@ -345,9 +351,34 @@ public class SimplePhotonNetworkManager : PunBehaviour
     public override void OnPhotonPlayerConnected(PhotonPlayer newPlayer)
     {
         if (isLog) Debug.Log("OnPhotonPlayerConnected");
-        if (!PhotonNetwork.isMasterClient)
-            return;
-        photonView.RPC("RpcAddPlayer", newPlayer);
+        if (PhotonNetwork.isMasterClient)
+        {
+            // Only master client send RpcAddPlayer to other clients
+            photonView.RPC("RpcAddPlayer", newPlayer);
+        }
+        if (onPlayerConnected != null)
+            onPlayerConnected.Invoke(newPlayer);
+    }
+
+    public override void OnPhotonPlayerDisconnected(PhotonPlayer otherPlayer)
+    {
+        if (isLog) Debug.Log("OnPhotonPlayerDisconnected");
+        if (onPlayerDisconnected != null)
+            onPlayerDisconnected.Invoke(otherPlayer);
+    }
+
+    public override void OnPhotonPlayerPropertiesChanged(object[] playerAndUpdatedProps)
+    {
+        if (isLog) Debug.Log("OnPhotonPlayerDisconnected");
+        if (onPlayerPropertiesChanged != null)
+            onPlayerPropertiesChanged.Invoke(playerAndUpdatedProps);
+    }
+
+    public override void OnPhotonCustomRoomPropertiesChanged(Hashtable propertiesThatChanged)
+    {
+        if (isLog) Debug.Log("OnPhotonCustomRoomPropertiesChanged");
+        if (onCustomRoomPropertiesChanged != null)
+            onCustomRoomPropertiesChanged.Invoke(propertiesThatChanged);
     }
 
     private void OnSceneChanged(Scene current, Scene next)
