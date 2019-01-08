@@ -435,7 +435,19 @@ public class SimplePhotonNetworkManager : PunBehaviour
             return;
         }
 
-        photonView.RPC("RpcTogglePlayerReady", PhotonTargets.MasterClient, PhotonNetwork.player.ID);
+        Hashtable customProperties = PhotonNetwork.player.CustomProperties;
+        PlayerState state = PlayerState.NotReady;
+        object stateObj;
+        if (customProperties.TryGetValue(CUSTOM_PLAYER_STATE, out stateObj))
+            state = (PlayerState)(byte)stateObj;
+        // Toggle state
+        if (state == PlayerState.NotReady)
+            state = PlayerState.Ready;
+        else if (state == PlayerState.Ready)
+            state = PlayerState.NotReady;
+        // Set state property
+        customProperties[CUSTOM_PLAYER_STATE] = (byte)state;
+        PhotonNetwork.player.SetCustomProperties(customProperties);
     }
 
     public PhotonPlayer GetPlayerById(int id)
@@ -467,28 +479,6 @@ public class SimplePhotonNetworkManager : PunBehaviour
         PhotonPlayer foundPlayer = GetPlayerById(id);
         if (foundPlayer != null)
             photonView.RPC("RpcAddPlayer", foundPlayer);
-    }
-
-    [PunRPC]
-    protected virtual void RpcTogglePlayerReady(int id)
-    {
-        PhotonPlayer foundPlayer = GetPlayerById(id);
-        if (foundPlayer != null)
-        {
-            Hashtable customProperties = foundPlayer.CustomProperties;
-            PlayerState state = PlayerState.NotReady;
-            object stateObj;
-            if (customProperties.TryGetValue(CUSTOM_PLAYER_STATE, out stateObj))
-                state = (PlayerState)(byte)stateObj;
-            // Toggle state
-            if (state == PlayerState.NotReady)
-                state = PlayerState.Ready;
-            else if (state == PlayerState.Ready)
-                state = PlayerState.NotReady;
-            // Set state property
-            customProperties[CUSTOM_PLAYER_STATE] = (byte) state;
-            foundPlayer.SetCustomProperties(customProperties);
-        }
     }
 
     public bool RandomStartPoint(out Vector3 position, out Quaternion rotation)
