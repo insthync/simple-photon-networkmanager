@@ -9,4 +9,9 @@ public class NetworkDiscoveryData
     public byte state;
     public int numPlayers;
     public int maxPlayers;
+    public string gameRule;
+    public int botCount;
+    public int matchTime;
+    public int matchKill;
+    public int matchScore;
 }
