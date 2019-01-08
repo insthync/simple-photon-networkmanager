@@ -140,19 +140,7 @@ public class UIPhotonWaitingRoom : UIBase
 
     public virtual void OnClickReady()
     {
-        Hashtable customProperties = PhotonNetwork.player.CustomProperties;
-        SimplePhotonNetworkManager.PlayerState state = SimplePhotonNetworkManager.PlayerState.NotReady;
-        object stateObj;
-        if (customProperties.TryGetValue(SimplePhotonNetworkManager.CUSTOM_PLAYER_STATE, out stateObj))
-            state = (SimplePhotonNetworkManager.PlayerState) (byte) stateObj;
-        // Toggle state
-        if (state == SimplePhotonNetworkManager.PlayerState.NotReady)
-            state = SimplePhotonNetworkManager.PlayerState.Ready;
-        if (state == SimplePhotonNetworkManager.PlayerState.Ready)
-            state = SimplePhotonNetworkManager.PlayerState.NotReady;
-        // Set state property
-        customProperties[SimplePhotonNetworkManager.CUSTOM_PLAYER_STATE] = (byte)state;
-        PhotonNetwork.player.SetCustomProperties(customProperties);
+        SimplePhotonNetworkManager.Singleton.TogglePlayerReady();
     }
 
     public virtual void OnClickChangeTeam()
@@ -229,6 +217,14 @@ public class UIPhotonWaitingRoom : UIBase
 
     }
 
+    private void UpdatePlayerUI(PhotonPlayer player)
+    {
+        if (waitingPlayers.ContainsKey(player.ID))
+        {
+            waitingPlayers[player.ID].SetData(this, player);
+        }
+    }
+
     private void OnPlayerConnectedCallback(PhotonPlayer player)
     {
         UpdateRoomData();
@@ -244,13 +240,9 @@ public class UIPhotonWaitingRoom : UIBase
         DestroyPlayerUI(key);
     }
 
-    private void OnPlayerPropertiesChangedCallback(object[] playerAndUpdatedProps)
+    private void OnPlayerPropertiesChangedCallback(PhotonPlayer player, Hashtable props)
     {
-        // TODO: Under testing
-        foreach (var playerAndUpdatedProp in playerAndUpdatedProps)
-        {
-            Debug.LogError(playerAndUpdatedProp.ToString());
-        }
+        UpdatePlayerUI(player);
     }
 
     private void OnCustomRoomPropertiesChangedCallback(Hashtable propertiesThatChanged)
