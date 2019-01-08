@@ -17,11 +17,11 @@ public class UIPhotonNetworkingEntry : MonoBehaviour
     public Text textMatchTime;
     public Text textMatchKill;
     public Text textMatchScore;
-    private NetworkDiscoveryData _data;
+    public NetworkDiscoveryData Data { get; private set; }
 
     public void SetData(NetworkDiscoveryData data)
     {
-        _data = data;
+        Data = data;
         if (textRoomName != null)
             textRoomName.text = string.IsNullOrEmpty(data.roomName) ? "Untitled" : data.roomName;
         if (textPlayerName != null)
@@ -76,6 +76,6 @@ public class UIPhotonNetworkingEntry : MonoBehaviour
     public virtual void OnClickJoinButton()
     {
         var networkManager = SimplePhotonNetworkManager.Singleton;
-        networkManager.JoinRoom(_data.name);
+        networkManager.JoinRoom(Data.name);
     }
 }

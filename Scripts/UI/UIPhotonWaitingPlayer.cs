@@ -11,13 +11,13 @@ public class UIPhotonWaitingPlayer : MonoBehaviour
     public string playerStateNotReady = "Not Ready";
     public GameObject[] hostObjects;
     public GameObject[] owningObjects;
-    private UIPhotonWaitingRoom _room;
-    private PhotonPlayer _data;
+    public UIPhotonWaitingRoom Room { get; private set; }
+    public PhotonPlayer Data { get; private set; }
 
     public void SetData(UIPhotonWaitingRoom room, PhotonPlayer data)
     {
-        _room = room;
-        _data = data;
+        Room = room;
+        Data = data;
         var state = (byte) data.CustomProperties[SimplePhotonNetworkManager.CUSTOM_PLAYER_STATE];
 
         if (textPlayerName != null)
