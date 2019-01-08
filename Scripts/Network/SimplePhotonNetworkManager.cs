@@ -323,10 +323,18 @@ public class SimplePhotonNetworkManager : PunBehaviour
     public override void OnJoinedRoom()
     {
         if (isLog) Debug.Log("OnJoinedRoom");
-        if (PhotonNetwork.isMasterClient && startGameOnRoomCreated)
+        if (PhotonNetwork.isMasterClient)
         {
-            // If master client joined room, wait for scene change if needed
-            StartCoroutine(MasterWaitOnlineSceneLoaded());
+            if (startGameOnRoomCreated)
+            {
+                // If master client joined room, wait for scene change if needed
+                StartCoroutine(MasterWaitOnlineSceneLoaded());
+            }
+
+            // Set player state to ready (master client always ready)
+            var customProperties = PhotonNetwork.player.CustomProperties;
+            customProperties[CUSTOM_PLAYER_STATE] = (byte)PlayerState.Ready;
+            PhotonNetwork.player.SetCustomProperties(customProperties);
         }
         if (onJoinedRoom != null)
             onJoinedRoom.Invoke();
@@ -362,6 +370,10 @@ public class SimplePhotonNetworkManager : PunBehaviour
         {
             // Only master client send RpcAddPlayer to other clients
             photonView.RPC("RpcAddPlayer", newPlayer);
+            // Set player state to not ready
+            var customProperties = newPlayer.CustomProperties;
+            customProperties[CUSTOM_PLAYER_STATE] = (byte)PlayerState.NotReady;
+            newPlayer.SetCustomProperties(customProperties);
         }
         if (onPlayerConnected != null)
             onPlayerConnected.Invoke(newPlayer);
