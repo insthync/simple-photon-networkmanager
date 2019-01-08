@@ -1,13 +1,26 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Photon;
 
+[RequireComponent(typeof(PunTeams))]
 public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
 {
     public static new BaseNetworkGameManager Singleton
     {
         get { return SimplePhotonNetworkManager.Singleton as BaseNetworkGameManager; }
+    }
+
+    private PunTeams cacheTeams;
+    public PunTeams Teams
+    {
+        get
+        {
+            if (cacheTeams == null)
+                cacheTeams = GetComponent<PunTeams>();
+            if (cacheTeams == null)
+                cacheTeams = gameObject.AddComponent<PunTeams>();
+            return cacheTeams;
+        }
     }
 
     public const string CUSTOM_ROOM_GAME_RULE = "G";
