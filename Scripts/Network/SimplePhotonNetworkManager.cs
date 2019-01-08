@@ -151,9 +151,21 @@ public class SimplePhotonNetworkManager : PunBehaviour
     private void SetupAndCreateRoom()
     {
         var roomOptions = new RoomOptions();
-        roomOptions.CustomRoomPropertiesForLobby = new string[] { CUSTOM_ROOM_ROOM_NAME, CUSTOM_ROOM_PLAYER_ID, CUSTOM_ROOM_PLAYER_NAME, CUSTOM_ROOM_SCENE_NAME, CUSTOM_ROOM_STATE };
+        roomOptions.CustomRoomPropertiesForLobby = GetCustomRoomPropertiesForLobby();
         roomOptions.MaxPlayers = maxConnections;
         PhotonNetwork.CreateRoom(string.Empty, roomOptions, null);
+    }
+
+    protected virtual string[] GetCustomRoomPropertiesForLobby()
+    {
+        return new string[]
+        {
+            CUSTOM_ROOM_ROOM_NAME,
+            CUSTOM_ROOM_PLAYER_ID,
+            CUSTOM_ROOM_PLAYER_NAME,
+            CUSTOM_ROOM_SCENE_NAME,
+            CUSTOM_ROOM_STATE
+        };
     }
 
     public void SetRoomName(string roomName)
@@ -336,6 +348,13 @@ public class SimplePhotonNetworkManager : PunBehaviour
             customProperties[CUSTOM_PLAYER_STATE] = (byte)PlayerState.Ready;
             PhotonNetwork.player.SetCustomProperties(customProperties);
         }
+        else
+        {
+            // Set player state to not ready
+            var customProperties = PhotonNetwork.player.CustomProperties;
+            customProperties[CUSTOM_PLAYER_STATE] = (byte)PlayerState.NotReady;
+            PhotonNetwork.player.SetCustomProperties(customProperties);
+        }
         if (onJoinedRoom != null)
             onJoinedRoom.Invoke();
     }
@@ -368,8 +387,6 @@ public class SimplePhotonNetworkManager : PunBehaviour
         if (isLog) Debug.Log("OnPhotonPlayerConnected");
         if (PhotonNetwork.isMasterClient)
         {
-            // Only master client send RpcAddPlayer to other clients
-            photonView.RPC("RpcAddPlayer", newPlayer);
             // Set player state to not ready
             var customProperties = newPlayer.CustomProperties;
             customProperties[CUSTOM_PLAYER_STATE] = (byte)PlayerState.NotReady;
@@ -388,7 +405,7 @@ public class SimplePhotonNetworkManager : PunBehaviour
 
     public override void OnPhotonPlayerPropertiesChanged(object[] playerAndUpdatedProps)
     {
-        if (isLog) Debug.Log("OnPhotonPlayerDisconnected");
+        if (isLog) Debug.Log("OnPhotonPlayerPropertiesChanged");
         if (onPlayerPropertiesChanged != null)
             onPlayerPropertiesChanged.Invoke(playerAndUpdatedProps);
     }
@@ -404,17 +421,36 @@ public class SimplePhotonNetworkManager : PunBehaviour
     {
         if (next.name == onlineScene.SceneName && PhotonNetwork.inRoom)
         {
+            // Send client ready to spawn player at master client
             OnOnlineSceneChanged();
+            photonView.RPC("RpcPlayerReady", PhotonTargets.MasterClient, PhotonNetwork.player.ID);
         }
     }
     
     [PunRPC]
     protected virtual void RpcAddPlayer()
     {
-        var position = Vector3.zero;
+        Vector3 position = Vector3.zero;
         var rotation = Quaternion.identity;
         RandomStartPoint(out position, out rotation);
         PhotonNetwork.Instantiate(playerPrefab.name, position, rotation, 0);
+    }
+
+    [PunRPC]
+    protected virtual void RpcPlayerReady(int id)
+    {
+        PhotonPlayer foundPlayer = null;
+        foreach (var player in PhotonNetwork.playerList)
+        {
+            if (player.ID == id)
+            {
+                foundPlayer = player;
+                break;
+            }
+        }
+
+        if (foundPlayer != null)
+            photonView.RPC("RpcAddPlayer", foundPlayer);
     }
 
     public bool RandomStartPoint(out Vector3 position, out Quaternion rotation)
