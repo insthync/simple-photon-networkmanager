@@ -2,9 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using Photon;
 
-public class UIPhotonNetworkingEntry : UnityEngine.MonoBehaviour
+public class UIPhotonNetworkingEntry : MonoBehaviour
 {
     public Text textRoomName;
     public Text textPlayerName;
