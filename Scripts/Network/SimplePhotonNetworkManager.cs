@@ -394,9 +394,9 @@ public class SimplePhotonNetworkManager : PunBehaviour
     {
         if (isLog) Debug.Log("OnPhotonPlayerConnected");
         // Set player state to not ready
-        var customProperties = PhotonNetwork.player.CustomProperties;
+        var customProperties = newPlayer.CustomProperties;
         customProperties[CUSTOM_PLAYER_STATE] = (byte)PlayerState.NotReady;
-        PhotonNetwork.player.SetCustomProperties(customProperties);
+        newPlayer.SetCustomProperties(customProperties);
         if (onPlayerConnected != null)
             onPlayerConnected.Invoke(newPlayer);
     }
