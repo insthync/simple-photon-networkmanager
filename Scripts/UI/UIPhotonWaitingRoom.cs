@@ -29,6 +29,7 @@ public class UIPhotonWaitingRoom : UIBase
     public GameObject[] nonHostObjects;
     public int HostPlayerID { get; private set; }
 
+    private readonly Dictionary<int, PhotonPlayer> players = new Dictionary<int, PhotonPlayer>();
     private readonly Dictionary<int, UIPhotonWaitingPlayer> waitingPlayers = new Dictionary<int, UIPhotonWaitingPlayer>();
     private readonly Dictionary<int, UIPhotonWaitingPlayer> waitingTeamAPlayers = new Dictionary<int, UIPhotonWaitingPlayer>();
     private readonly Dictionary<int, UIPhotonWaitingPlayer> waitingTeamBPlayers = new Dictionary<int, UIPhotonWaitingPlayer>();
@@ -47,6 +48,15 @@ public class UIPhotonWaitingRoom : UIBase
     public override void Hide()
     {
         base.Hide();
+        SimplePhotonNetworkManager.onJoinedRoom -= OnJoinedRoomCallback;
+        SimplePhotonNetworkManager.onPlayerConnected -= OnPlayerConnectedCallback;
+        SimplePhotonNetworkManager.onPlayerDisconnected -= OnPlayerDisconnectedCallback;
+        SimplePhotonNetworkManager.onPlayerPropertiesChanged -= OnPlayerPropertiesChangedCallback;
+        SimplePhotonNetworkManager.onCustomRoomPropertiesChanged -= OnCustomRoomPropertiesChangedCallback;
+    }
+
+    private void OnDestroy()
+    {
         SimplePhotonNetworkManager.onJoinedRoom -= OnJoinedRoomCallback;
         SimplePhotonNetworkManager.onPlayerConnected -= OnPlayerConnectedCallback;
         SimplePhotonNetworkManager.onPlayerDisconnected -= OnPlayerDisconnectedCallback;
@@ -169,7 +179,7 @@ public class UIPhotonWaitingRoom : UIBase
             var child = waitingPlayerTeamBListContainer.GetChild(i);
             Destroy(child.gameObject);
         }
-
+        players.Clear();
         waitingPlayers.Clear();
         waitingTeamAPlayers.Clear();
         waitingTeamBPlayers.Clear();
@@ -204,6 +214,7 @@ public class UIPhotonWaitingRoom : UIBase
             Destroy(waitingTeamBPlayers[id].gameObject);
             waitingTeamBPlayers.Remove(id);
         }
+        players.Remove(id);
     }
 
     private void CreatePlayerUI(PhotonPlayer player)
@@ -214,7 +225,7 @@ public class UIPhotonWaitingRoom : UIBase
         newEntry.gameObject.SetActive(true);
         waitingPlayers.Add(key, newEntry);
 
-
+        players[player.ID] = player;
     }
 
     private void UpdatePlayerUI(PhotonPlayer player)
@@ -228,21 +239,22 @@ public class UIPhotonWaitingRoom : UIBase
     private void OnPlayerConnectedCallback(PhotonPlayer player)
     {
         UpdateRoomData();
-        int key = player.ID;
-        DestroyPlayerUI(key);
+        DestroyPlayerUI(player.ID);
         CreatePlayerUI(player);
     }
 
     private void OnPlayerDisconnectedCallback(PhotonPlayer player)
     {
         UpdateRoomData();
-        int key = player.ID;
-        DestroyPlayerUI(key);
+        DestroyPlayerUI(player.ID);
     }
 
     private void OnPlayerPropertiesChangedCallback(PhotonPlayer player, Hashtable props)
     {
-        UpdatePlayerUI(player);
+        if (players.ContainsKey(player.ID))
+            UpdatePlayerUI(player);
+        else
+            CreatePlayerUI(player);
     }
 
     private void OnCustomRoomPropertiesChangedCallback(Hashtable propertiesThatChanged)
