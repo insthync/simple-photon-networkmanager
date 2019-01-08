@@ -73,6 +73,23 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
             ClientUpdate();
     }
 
+    protected override string[] GetCustomRoomPropertiesForLobby()
+    {
+        return new string[]
+        {
+            CUSTOM_ROOM_ROOM_NAME,
+            CUSTOM_ROOM_PLAYER_ID,
+            CUSTOM_ROOM_PLAYER_NAME,
+            CUSTOM_ROOM_SCENE_NAME,
+            CUSTOM_ROOM_STATE,
+            CUSTOM_ROOM_GAME_RULE,
+            CUSTOM_ROOM_GAME_RULE_BOT_COUNT,
+            CUSTOM_ROOM_GAME_RULE_MATCH_TIME,
+            CUSTOM_ROOM_GAME_RULE_MATCH_KILL,
+            CUSTOM_ROOM_GAME_RULE_MATCH_SCORE,
+        };
+    }
+
     public override void OnReceivedRoomListUpdate()
     {
         var rooms = PhotonNetwork.GetRoomList();
@@ -241,12 +258,19 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
     {
         // Reset last game/match data
         ResetGame();
-        SetGameRule(gameRule);
+        var customProperties = PhotonNetwork.room.CustomProperties;
+        customProperties[CUSTOM_ROOM_GAME_RULE] = gameRule == null ? "" : gameRule.name;
+        customProperties[CUSTOM_ROOM_GAME_RULE_BOT_COUNT] = gameRule == null ? 0 : gameRule.botCount;
+        customProperties[CUSTOM_ROOM_GAME_RULE_MATCH_TIME] = gameRule == null ? 0 : gameRule.matchTime;
+        customProperties[CUSTOM_ROOM_GAME_RULE_MATCH_KILL] = gameRule == null ? 0 : gameRule.matchKill;
+        customProperties[CUSTOM_ROOM_GAME_RULE_MATCH_SCORE] = gameRule == null ? 0 : gameRule.matchScore;
+        PhotonNetwork.room.SetCustomProperties(customProperties);
         base.OnCreatedRoom();
     }
 
     public override void OnOnlineSceneChanged()
     {
+        if (isLog) Debug.Log("OnOnlineSceneChanged");
         // Reset last game/match data
         ResetGame();
         // Get game rule to initial client objects
