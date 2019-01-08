@@ -11,6 +11,10 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
     }
 
     public const string CUSTOM_ROOM_GAME_RULE = "G";
+    public const string CUSTOM_ROOM_GAME_RULE_BOT_COUNT = "Gbc";
+    public const string CUSTOM_ROOM_GAME_RULE_MATCH_TIME = "Gmt";
+    public const string CUSTOM_ROOM_GAME_RULE_MATCH_KILL = "Gmk";
+    public const string CUSTOM_ROOM_GAME_RULE_MATCH_SCORE = "Gms";
 
     public BaseNetworkGameRule gameRule;
     protected float updateScoreTime;
@@ -67,6 +71,33 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
             ServerUpdate();
         if (PhotonNetwork.isNonMasterClientInRoom)
             ClientUpdate();
+    }
+
+    public override void OnReceivedRoomListUpdate()
+    {
+        var rooms = PhotonNetwork.GetRoomList();
+        var foundRooms = new List<NetworkDiscoveryData>();
+        foreach (var room in rooms)
+        {
+            var customProperties = room.CustomProperties;
+            var discoveryData = new NetworkDiscoveryData();
+            discoveryData.name = room.Name;
+            discoveryData.roomName = (string)customProperties[CUSTOM_ROOM_ROOM_NAME];
+            discoveryData.playerId = (int)customProperties[CUSTOM_ROOM_PLAYER_ID];
+            discoveryData.playerName = (string)customProperties[CUSTOM_ROOM_PLAYER_NAME];
+            discoveryData.sceneName = (string)customProperties[CUSTOM_ROOM_SCENE_NAME];
+            discoveryData.state = (byte)customProperties[CUSTOM_ROOM_STATE];
+            discoveryData.numPlayers = room.PlayerCount;
+            discoveryData.maxPlayers = room.MaxPlayers;
+            discoveryData.gameRule = (string)customProperties[CUSTOM_ROOM_GAME_RULE];
+            discoveryData.botCount = (int)customProperties[CUSTOM_ROOM_GAME_RULE_BOT_COUNT];
+            discoveryData.matchTime = (int)customProperties[CUSTOM_ROOM_GAME_RULE_MATCH_TIME];
+            discoveryData.matchKill = (int)customProperties[CUSTOM_ROOM_GAME_RULE_MATCH_KILL];
+            discoveryData.matchScore = (int)customProperties[CUSTOM_ROOM_GAME_RULE_MATCH_SCORE];
+            foundRooms.Add(discoveryData);
+        }
+        if (onReceivedRoomListUpdate != null)
+            onReceivedRoomListUpdate.Invoke(foundRooms);
     }
 
     protected virtual void ServerUpdate()
@@ -190,20 +221,36 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
             gameRule.OnUpdateCharacter(character);
     }
 
+    public void SetGameRule(BaseNetworkGameRule gameRule)
+    {
+        // If room not created, set data to field to use later
+        this.gameRule = gameRule;
+        if (PhotonNetwork.inRoom && PhotonNetwork.isMasterClient)
+        {
+            var customProperties = PhotonNetwork.room.CustomProperties;
+            customProperties[CUSTOM_ROOM_GAME_RULE] = gameRule == null ? "" : gameRule.name;
+            customProperties[CUSTOM_ROOM_GAME_RULE_BOT_COUNT] = gameRule == null ? 0 : gameRule.botCount;
+            customProperties[CUSTOM_ROOM_GAME_RULE_MATCH_TIME] = gameRule == null ? 0 : gameRule.matchTime;
+            customProperties[CUSTOM_ROOM_GAME_RULE_MATCH_KILL] = gameRule == null ? 0 : gameRule.matchKill;
+            customProperties[CUSTOM_ROOM_GAME_RULE_MATCH_SCORE] = gameRule == null ? 0 : gameRule.matchScore;
+            PhotonNetwork.room.SetCustomProperties(customProperties);
+        }
+    }
+
     public override void OnCreatedRoom()
     {
+        // Reset last game/match data
         ResetGame();
-        var customProperties = PhotonNetwork.room.CustomProperties;
-        customProperties[CUSTOM_ROOM_GAME_RULE] = gameRule == null ? "" : gameRule.name;
-        PhotonNetwork.room.SetCustomProperties(customProperties);
         base.OnCreatedRoom();
     }
 
     public override void OnOnlineSceneChanged()
     {
+        // Reset last game/match data
         ResetGame();
+        // Get game rule to initial client objects
         var customProperties = PhotonNetwork.room.CustomProperties;
-        var gameRuleName = (string)PhotonNetwork.room.CustomProperties[CUSTOM_ROOM_GAME_RULE];
+        var gameRuleName = (string)customProperties[CUSTOM_ROOM_GAME_RULE];
         BaseNetworkGameRule foundGameRule;
         if (BaseNetworkGameInstance.GameRules.TryGetValue(gameRuleName, out foundGameRule))
         {
