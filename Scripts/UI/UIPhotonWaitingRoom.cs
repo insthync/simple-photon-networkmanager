@@ -19,8 +19,11 @@ public class UIPhotonWaitingRoom : UIBase
     public Text textMatchKill;
     public Text textMatchScore;
     public UIPhotonWaitingPlayer waitingPlayerPrefab;
+    public GameObject waitingPlayerListRoot;
     public Transform waitingPlayerListContainer;
+    public GameObject waitingPlayerTeamAListRoot;
     public Transform waitingPlayerTeamAListContainer;
+    public GameObject waitingPlayerTeamBListRoot;
     public Transform waitingPlayerTeamBListContainer;
     public GameObject[] hostObjects;
     public GameObject[] nonHostObjects;
@@ -30,17 +33,20 @@ public class UIPhotonWaitingRoom : UIBase
     private readonly Dictionary<int, UIPhotonWaitingPlayer> waitingTeamAPlayers = new Dictionary<int, UIPhotonWaitingPlayer>();
     private readonly Dictionary<int, UIPhotonWaitingPlayer> waitingTeamBPlayers = new Dictionary<int, UIPhotonWaitingPlayer>();
 
-    private void OnEnable()
+    public override void Show()
     {
+        base.Show();
         SimplePhotonNetworkManager.onJoinedRoom += OnJoinedRoomCallback;
         SimplePhotonNetworkManager.onPlayerConnected += OnPlayerConnectedCallback;
         SimplePhotonNetworkManager.onPlayerDisconnected += OnPlayerDisconnectedCallback;
         SimplePhotonNetworkManager.onPlayerPropertiesChanged += OnPlayerPropertiesChangedCallback;
         SimplePhotonNetworkManager.onCustomRoomPropertiesChanged += OnCustomRoomPropertiesChangedCallback;
+        OnJoinedRoomCallback();
     }
 
-    private void OnDisable()
+    public override void Hide()
     {
+        base.Hide();
         SimplePhotonNetworkManager.onJoinedRoom -= OnJoinedRoomCallback;
         SimplePhotonNetworkManager.onPlayerConnected -= OnPlayerConnectedCallback;
         SimplePhotonNetworkManager.onPlayerDisconnected -= OnPlayerDisconnectedCallback;
@@ -80,27 +86,44 @@ public class UIPhotonWaitingRoom : UIBase
         }
 
         object gameRuleObject;
-        BaseNetworkGameRule gameRule;
+        BaseNetworkGameRule gameRule = null;
         if (textGameRule != null &&
             customProperties.TryGetValue(BaseNetworkGameManager.CUSTOM_ROOM_GAME_RULE, out gameRuleObject) &&
             BaseNetworkGameInstance.GameRules.TryGetValue(gameRuleObject.ToString(), out gameRule))
-            textGameRule.text = gameRule == null ? "" : gameRule.Title;
+            textGameRule.text = gameRule == null ? "Unknow" : gameRule.Title;
 
         object botCountObject;
-        if (textBotCount != null && customProperties.TryGetValue(BaseNetworkGameManager.CUSTOM_ROOM_GAME_RULE_BOT_COUNT, out botCountObject))
-            textBotCount.text = ((int)botCountObject).ToString("N0");
+        if (textBotCount != null &&
+            customProperties.TryGetValue(BaseNetworkGameManager.CUSTOM_ROOM_GAME_RULE_BOT_COUNT, out botCountObject))
+        {
+            textBotCount.text = ((int) botCountObject).ToString("N0");
+            textBotCount.gameObject.SetActive(gameRule != null && gameRule.HasOptionBotCount);
+        }
 
         object matchTimeObject;
-        if (textMatchTime != null && customProperties.TryGetValue(BaseNetworkGameManager.CUSTOM_ROOM_GAME_RULE_MATCH_TIME, out matchTimeObject))
-            textMatchTime.text = ((int)matchTimeObject).ToString("N0");
+        if (textMatchTime != null &&
+            customProperties.TryGetValue(BaseNetworkGameManager.CUSTOM_ROOM_GAME_RULE_MATCH_TIME, out matchTimeObject))
+        {
+            textMatchTime.text = ((int) matchTimeObject).ToString("N0");
+            textMatchTime.gameObject.SetActive(gameRule != null && gameRule.HasOptionMatchTime);
+        }
 
         object matchKillObject;
-        if (textMatchKill != null && customProperties.TryGetValue(BaseNetworkGameManager.CUSTOM_ROOM_GAME_RULE_MATCH_KILL, out matchKillObject))
-            textMatchKill.text = ((int)matchKillObject).ToString("N0");
+        if (textMatchKill != null &&
+            customProperties.TryGetValue(BaseNetworkGameManager.CUSTOM_ROOM_GAME_RULE_MATCH_KILL, out matchKillObject))
+        {
+            textMatchKill.text = ((int) matchKillObject).ToString("N0");
+            textMatchKill.gameObject.SetActive(gameRule != null && gameRule.HasOptionMatchKill);
+        }
 
         object matchScoreObject;
-        if (textMatchScore != null && customProperties.TryGetValue(BaseNetworkGameManager.CUSTOM_ROOM_GAME_RULE_MATCH_SCORE, out matchScoreObject))
-            textMatchScore.text = ((int)matchScoreObject).ToString("N0");
+        if (textMatchScore != null &&
+            customProperties.TryGetValue(BaseNetworkGameManager.CUSTOM_ROOM_GAME_RULE_MATCH_SCORE,
+                out matchScoreObject))
+        {
+            textMatchScore.text = ((int) matchScoreObject).ToString("N0");
+            textMatchScore.gameObject.SetActive(gameRule != null && gameRule.HasOptionMatchScore);
+        }
 
         HostPlayerID = playerId;
     }
@@ -132,6 +155,11 @@ public class UIPhotonWaitingRoom : UIBase
         PhotonNetwork.player.SetCustomProperties(customProperties);
     }
 
+    public virtual void OnClickChangeTeam()
+    {
+
+    }
+
     private void OnJoinedRoomCallback()
     {
         UpdateRoomData();
@@ -155,16 +183,11 @@ public class UIPhotonWaitingRoom : UIBase
         }
 
         waitingPlayers.Clear();
+        waitingTeamAPlayers.Clear();
+        waitingTeamBPlayers.Clear();
         foreach (PhotonPlayer data in PhotonNetwork.playerList)
         {
-            int key = data.ID;
-            if (!waitingPlayers.ContainsKey(key))
-            {
-                var newEntry = Instantiate(waitingPlayerPrefab, waitingPlayerListContainer);
-                newEntry.SetData(this, data);
-                newEntry.gameObject.SetActive(true);
-                waitingPlayers.Add(key, newEntry);
-            }
+            CreatePlayerUI(data);
         }
         foreach (var hostObject in hostObjects)
         {
@@ -176,31 +199,49 @@ public class UIPhotonWaitingRoom : UIBase
         }
     }
 
-    private void OnPlayerConnectedCallback(PhotonPlayer player)
+    private void DestroyPlayerUI(int id)
     {
-        UpdateRoomData();
-        int key = player.ID;
-        if (waitingPlayers.ContainsKey(key))
+        if (waitingPlayers.ContainsKey(id))
         {
-            Destroy(waitingPlayers[key].gameObject);
-            waitingPlayers.Remove(key);
+            Destroy(waitingPlayers[id].gameObject);
+            waitingPlayers.Remove(id);
         }
+        if (waitingTeamAPlayers.ContainsKey(id))
+        {
+            Destroy(waitingTeamAPlayers[id].gameObject);
+            waitingTeamAPlayers.Remove(id);
+        }
+        if (waitingTeamBPlayers.ContainsKey(id))
+        {
+            Destroy(waitingTeamBPlayers[id].gameObject);
+            waitingTeamBPlayers.Remove(id);
+        }
+    }
 
+    private void CreatePlayerUI(PhotonPlayer player)
+    {
+        int key = player.ID;
         var newEntry = Instantiate(waitingPlayerPrefab, waitingPlayerListContainer);
         newEntry.SetData(this, player);
         newEntry.gameObject.SetActive(true);
         waitingPlayers.Add(key, newEntry);
+
+
+    }
+
+    private void OnPlayerConnectedCallback(PhotonPlayer player)
+    {
+        UpdateRoomData();
+        int key = player.ID;
+        DestroyPlayerUI(key);
+        CreatePlayerUI(player);
     }
 
     private void OnPlayerDisconnectedCallback(PhotonPlayer player)
     {
         UpdateRoomData();
         int key = player.ID;
-        if (waitingPlayers.ContainsKey(key))
-        {
-            Destroy(waitingPlayers[key].gameObject);
-            waitingPlayers.Remove(key);
-        }
+        DestroyPlayerUI(key);
     }
 
     private void OnPlayerPropertiesChangedCallback(object[] playerAndUpdatedProps)
