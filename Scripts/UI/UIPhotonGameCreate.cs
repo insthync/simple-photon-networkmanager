@@ -221,10 +221,8 @@ public class UIPhotonGameCreate : UIBase
         networkGameManager.SetGameRule(selected);
     }
 
-    public override void Show()
+    private void SetupUIs()
     {
-        base.Show();
-
         if (mapList != null)
         {
             mapList.ClearOptions();
@@ -261,6 +259,12 @@ public class UIPhotonGameCreate : UIBase
         {
             updateUiObject.SetActive(false);
         }
+    }
+
+    public override void Show()
+    {
+        base.Show();
+        SetupUIs();
         isForUpdate = false;
     }
 
@@ -270,13 +274,15 @@ public class UIPhotonGameCreate : UIBase
         if (!PhotonNetwork.isMasterClient || !PhotonNetwork.inRoom)
             Hide();
 
+        base.Show();
+
         Hashtable oldProperties = PhotonNetwork.room.CustomProperties;
 
         // Don't apply updates in this function, will allow it to updates later
         dontApplyUpdates = true;
 
         // Setup events for inputs
-        base.Show();
+        SetupUIs();
 
         // Set data by customized data
         if (inputRoomName != null)
@@ -284,7 +290,7 @@ public class UIPhotonGameCreate : UIBase
 
         // Set data by customized data
         if (inputMaxPlayer != null)
-            inputMaxPlayer.text = SimplePhotonNetworkManager.Singleton.maxConnections.ToString();
+            inputMaxPlayer.text = PhotonNetwork.room.MaxPlayers.ToString();
 
         int indexOfMap = -1;
         object sceneNameObject;
