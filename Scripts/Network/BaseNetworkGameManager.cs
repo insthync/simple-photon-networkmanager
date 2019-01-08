@@ -241,6 +241,7 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
     {
         // Reset last game/match data
         ResetGame();
+        SetGameRule(gameRule);
         base.OnCreatedRoom();
     }
 
