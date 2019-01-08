@@ -169,9 +169,10 @@ public class UIPhotonGameCreate : UIBase
         byte maxPlayer = maxPlayerCustomizable;
         if (!byte.TryParse(value, out maxPlayer) || maxPlayer > maxPlayerCustomizable)
         {
-            SimplePhotonNetworkManager.Singleton.maxConnections = maxPlayer;
+            maxPlayer = maxPlayerCustomizable;
             inputMaxPlayer.text = maxPlayer.ToString();
         }
+        SimplePhotonNetworkManager.Singleton.maxConnections = maxPlayer;
     }
 
     public void OnBotCountChanged(string value)
