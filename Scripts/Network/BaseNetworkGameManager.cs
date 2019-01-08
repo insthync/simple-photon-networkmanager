@@ -304,6 +304,7 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
 
     public override void OnMasterClientSwitched(PhotonPlayer newMasterClient)
     {
+        base.OnMasterClientSwitched(newMasterClient);
         Characters.Clear();
         var characters = FindObjectsOfType<BaseNetworkGameCharacter>();
         foreach (var character in characters)
