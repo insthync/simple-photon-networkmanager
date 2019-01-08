@@ -12,7 +12,13 @@ public class UIPhotonNetworkingEntry : MonoBehaviour
     public Text textRoomState;
     public string roomStateWaiting = "Waiting";
     public string roomStatePlaying = "Playing";
+    public Text textGameRule;
+    public Text textBotCount;
+    public Text textMatchTime;
+    public Text textMatchKill;
+    public Text textMatchScore;
     private NetworkDiscoveryData _data;
+
     public void SetData(NetworkDiscoveryData data)
     {
         _data = data;
@@ -36,6 +42,23 @@ public class UIPhotonNetworkingEntry : MonoBehaviour
                     break;
             }
         }
+        
+        BaseNetworkGameRule gameRule;
+        if (textGameRule != null &&
+            BaseNetworkGameInstance.GameRules.TryGetValue(data.gameRule, out gameRule))
+            textGameRule.text = gameRule == null ? "" : gameRule.Title;
+        
+        if (textBotCount != null)
+            textBotCount.text = data.botCount.ToString("N0");
+        
+        if (textMatchTime != null)
+            textMatchTime.text = data.matchTime.ToString("N0");
+        
+        if (textMatchKill != null)
+            textMatchKill.text = data.matchKill.ToString("N0");
+        
+        if (textMatchScore != null)
+            textMatchScore.text = data.matchScore.ToString("N0");
     }
 
     public virtual void OnClickJoinButton()
