@@ -432,11 +432,11 @@ public class SimplePhotonNetworkManager : PunBehaviour
         }
     }
 
-    public void TogglePlayerReady()
+    public void TogglePlayerState()
     {
         if (!PhotonNetwork.inRoom)
         {
-            Debug.LogError("Cannot toggle ready state because you are not in room");
+            Debug.LogError("Cannot toggle player state because you are not in room");
             return;
         }
 
@@ -452,6 +452,19 @@ public class SimplePhotonNetworkManager : PunBehaviour
             state = PlayerState.NotReady;
         // Set state property
         customProperties[CUSTOM_PLAYER_STATE] = (byte)state;
+        PhotonNetwork.player.SetCustomProperties(customProperties);
+    }
+
+    public void SetPlayerState(PlayerState playerState)
+    {
+        if (!PhotonNetwork.inRoom)
+        {
+            Debug.LogError("Cannot set player state because you are not in room");
+            return;
+        }
+
+        Hashtable customProperties = PhotonNetwork.player.CustomProperties;
+        customProperties[CUSTOM_PLAYER_STATE] = (byte)playerState;
         PhotonNetwork.player.SetCustomProperties(customProperties);
     }
 

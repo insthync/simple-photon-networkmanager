@@ -150,7 +150,7 @@ public class UIPhotonWaitingRoom : UIBase
 
     public virtual void OnClickReady()
     {
-        SimplePhotonNetworkManager.Singleton.TogglePlayerReady();
+        SimplePhotonNetworkManager.Singleton.TogglePlayerState();
     }
 
     public virtual void OnClickChangeTeam()
@@ -259,6 +259,18 @@ public class UIPhotonWaitingRoom : UIBase
 
     private void OnCustomRoomPropertiesChangedCallback(Hashtable propertiesThatChanged)
     {
-        UpdateRoomData();
+        var room = PhotonNetwork.room;
+        var customProperties = room.CustomProperties;
+        var playerId = (int)customProperties[SimplePhotonNetworkManager.CUSTOM_ROOM_PLAYER_ID];
+        if (playerId != HostPlayerID)
+        {
+            // Host always ready
+            if (playerId == PhotonNetwork.player.ID)
+                SimplePhotonNetworkManager.Singleton.SetPlayerState(SimplePhotonNetworkManager.PlayerState.Ready);
+            // Update with `OnJoinedRoomCallback` to refresh or data
+            OnJoinedRoomCallback();
+        }
+        else
+            UpdateRoomData();
     }
 }
