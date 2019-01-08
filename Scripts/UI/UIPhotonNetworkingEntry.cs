@@ -43,22 +43,34 @@ public class UIPhotonNetworkingEntry : MonoBehaviour
             }
         }
         
-        BaseNetworkGameRule gameRule;
+        BaseNetworkGameRule gameRule = null;
         if (textGameRule != null &&
             BaseNetworkGameInstance.GameRules.TryGetValue(data.gameRule, out gameRule))
             textGameRule.text = gameRule == null ? "" : gameRule.Title;
-        
+
         if (textBotCount != null)
+        {
             textBotCount.text = data.botCount.ToString("N0");
-        
+            textBotCount.gameObject.SetActive(gameRule != null && gameRule.HasOptionBotCount);
+        }
+
         if (textMatchTime != null)
+        {
             textMatchTime.text = data.matchTime.ToString("N0");
-        
+            textMatchTime.gameObject.SetActive(gameRule != null && gameRule.HasOptionMatchTime);
+        }
+
         if (textMatchKill != null)
+        {
             textMatchKill.text = data.matchKill.ToString("N0");
-        
+            textMatchKill.gameObject.SetActive(gameRule != null && gameRule.HasOptionMatchKill);
+        }
+
         if (textMatchScore != null)
+        {
             textMatchScore.text = data.matchScore.ToString("N0");
+            textMatchScore.gameObject.SetActive(gameRule != null && gameRule.HasOptionMatchScore);
+        }
     }
 
     public virtual void OnClickJoinButton()
