@@ -382,9 +382,21 @@ public class SimplePhotonNetworkManager : PunBehaviour
     {
     }
 
+    public override void OnMasterClientSwitched(PhotonPlayer newMasterClient)
+    {
+        var customProperties = PhotonNetwork.room.CustomProperties;
+        customProperties[CUSTOM_ROOM_PLAYER_ID] = newMasterClient.ID;
+        customProperties[CUSTOM_ROOM_PLAYER_NAME] = newMasterClient.NickName;
+        PhotonNetwork.room.SetCustomProperties(customProperties);
+    }
+
     public override void OnPhotonPlayerConnected(PhotonPlayer newPlayer)
     {
         if (isLog) Debug.Log("OnPhotonPlayerConnected");
+        // Set player state to not ready
+        var customProperties = PhotonNetwork.player.CustomProperties;
+        customProperties[CUSTOM_PLAYER_STATE] = (byte)PlayerState.NotReady;
+        PhotonNetwork.player.SetCustomProperties(customProperties);
         if (onPlayerConnected != null)
             onPlayerConnected.Invoke(newPlayer);
     }
