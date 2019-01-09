@@ -110,7 +110,7 @@ public class UIPhotonWaitingRoom : UIBase
         if (textBotCount != null &&
             customProperties.TryGetValue(BaseNetworkGameManager.CUSTOM_ROOM_GAME_RULE_BOT_COUNT, out botCountObject))
         {
-            textBotCount.text = ((int) botCountObject).ToString("N0");
+            textBotCount.text = ((int)botCountObject).ToString("N0");
             textBotCount.gameObject.SetActive(gameRule != null && gameRule.HasOptionBotCount);
         }
 
@@ -118,7 +118,7 @@ public class UIPhotonWaitingRoom : UIBase
         if (textMatchTime != null &&
             customProperties.TryGetValue(BaseNetworkGameManager.CUSTOM_ROOM_GAME_RULE_MATCH_TIME, out matchTimeObject))
         {
-            textMatchTime.text = ((int) matchTimeObject).ToString("N0");
+            textMatchTime.text = ((int)matchTimeObject).ToString("N0");
             textMatchTime.gameObject.SetActive(gameRule != null && gameRule.HasOptionMatchTime);
         }
 
@@ -126,7 +126,7 @@ public class UIPhotonWaitingRoom : UIBase
         if (textMatchKill != null &&
             customProperties.TryGetValue(BaseNetworkGameManager.CUSTOM_ROOM_GAME_RULE_MATCH_KILL, out matchKillObject))
         {
-            textMatchKill.text = ((int) matchKillObject).ToString("N0");
+            textMatchKill.text = ((int)matchKillObject).ToString("N0");
             textMatchKill.gameObject.SetActive(gameRule != null && gameRule.HasOptionMatchKill);
         }
 
@@ -135,7 +135,7 @@ public class UIPhotonWaitingRoom : UIBase
             customProperties.TryGetValue(BaseNetworkGameManager.CUSTOM_ROOM_GAME_RULE_MATCH_SCORE,
                 out matchScoreObject))
         {
-            textMatchScore.text = ((int) matchScoreObject).ToString("N0");
+            textMatchScore.text = ((int)matchScoreObject).ToString("N0");
             textMatchScore.gameObject.SetActive(gameRule != null && gameRule.HasOptionMatchScore);
         }
 
@@ -224,10 +224,26 @@ public class UIPhotonWaitingRoom : UIBase
     private void CreatePlayerUI(PhotonPlayer player)
     {
         int key = player.ID;
-        var newEntry = Instantiate(waitingPlayerPrefab, waitingPlayerListContainer);
+        DestroyPlayerUI(key);
+
+        PunTeams.Team team = player.GetTeam();
+        Transform container = waitingPlayerListContainer;
+        Dictionary<int, UIPhotonWaitingPlayer> uiDict = waitingPlayers;
+        switch (team)
+        {
+            case PunTeams.Team.red:
+                container = waitingPlayerTeamAListContainer;
+                uiDict = waitingTeamAPlayers;
+                break;
+            case PunTeams.Team.blue:
+                container = waitingPlayerTeamBListContainer;
+                uiDict = waitingTeamBPlayers;
+                break;
+        }
+        UIPhotonWaitingPlayer newEntry = Instantiate(waitingPlayerPrefab, container);
         newEntry.SetData(this, player);
         newEntry.gameObject.SetActive(true);
-        waitingPlayers.Add(key, newEntry);
+        uiDict.Add(key, newEntry);
 
         players[player.ID] = player;
     }
@@ -243,7 +259,6 @@ public class UIPhotonWaitingRoom : UIBase
     private void OnPlayerConnectedCallback(PhotonPlayer player)
     {
         UpdateRoomData();
-        DestroyPlayerUI(player.ID);
         CreatePlayerUI(player);
     }
 
