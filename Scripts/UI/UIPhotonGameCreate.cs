@@ -53,7 +53,7 @@ public class UIPhotonGameCreate : UIBase
             Debug.LogWarning("The dialog showed for update, cannot use for create game or room");
             return;
         }
-
+        UpdateNetworkManager();
         SimplePhotonNetworkManager.Singleton.CreateRoom();
         Hide();
     }
@@ -65,9 +65,51 @@ public class UIPhotonGameCreate : UIBase
             Debug.LogWarning("The dialog showed for update, cannot use for create game or room");
             return;
         }
-
+        UpdateNetworkManager();
         SimplePhotonNetworkManager.Singleton.CreateWaitingRoom();
         Hide();
+    }
+
+    public virtual void OnClickUpdateWaitingRoom()
+    {
+        if (!isForUpdate)
+        {
+            Debug.LogWarning("The dialog not showed for update, cannot use for update waiting room");
+            return;
+        }
+        UpdateNetworkManager();
+        Hide();
+    }
+
+    protected void UpdateNetworkManager()
+    {
+        if (dontApplyUpdates)
+            return;
+
+        var networkGameManager = SimplePhotonNetworkManager.Singleton as BaseNetworkGameManager;
+
+        // Set room name
+        string roomName = inputRoomName == null ? defaultRoomName : inputRoomName.text;
+        networkGameManager.SetRoomName(roomName);
+
+        // Set max player
+        string maxPlayerString = inputMaxPlayer == null ? "0" : inputMaxPlayer.text;
+        byte maxPlayer = maxPlayerCustomizable;
+        if (!byte.TryParse(maxPlayerString, out maxPlayer) || maxPlayer > maxPlayerCustomizable)
+            maxPlayer = maxPlayerCustomizable;
+        // Force max player to be even number
+        byte evenAmount = (byte)((int)maxPlayer / 2 * 2);
+        if (maxPlayer != evenAmount)
+            maxPlayer = evenAmount;
+        networkGameManager.SetMaxConnections(maxPlayer);
+
+        // Set game rule
+        var selected = GetSelectedGameRule();
+        selected.botCount = inputBotCount == null ? selected.DefaultBotCount : int.Parse(inputBotCount.text);
+        selected.matchTime = inputMatchTime == null ? selected.DefaultMatchTime : int.Parse(inputMatchTime.text);
+        selected.matchKill = inputMatchKill == null ? selected.DefaultMatchKill : int.Parse(inputMatchKill.text);
+        selected.matchScore = inputMatchScore == null ? selected.DefaultMatchScore : int.Parse(inputMatchScore.text);
+        networkGameManager.SetGameRule(selected);
     }
 
     public void OnMapListChange(int value)
@@ -151,15 +193,12 @@ public class UIPhotonGameCreate : UIBase
             inputMatchScore.onEndEdit.RemoveListener(OnMatchScoreChanged);
             inputMatchScore.onEndEdit.AddListener(OnMatchScoreChanged);
         }
-
-        UpdateNetworkManager();
     }
 
     public void OnRoomNameChanged(string value)
     {
         if (dontApplyUpdates)
             return;
-        SimplePhotonNetworkManager.Singleton.SetRoomName(value);
     }
 
     public void OnMaxPlayerChanged(string value)
@@ -179,7 +218,6 @@ public class UIPhotonGameCreate : UIBase
             maxPlayer = evenAmount;
             inputMaxPlayer.text = maxPlayer.ToString();
         }
-        SimplePhotonNetworkManager.Singleton.maxConnections = maxPlayer;
     }
 
     public void OnBotCountChanged(string value)
@@ -187,7 +225,6 @@ public class UIPhotonGameCreate : UIBase
         int botCount = 0;
         if (!int.TryParse(value, out botCount))
             inputBotCount.text = botCount.ToString();
-        UpdateNetworkManager();
     }
 
     public void OnMatchTimeChanged(string value)
@@ -195,7 +232,6 @@ public class UIPhotonGameCreate : UIBase
         int matchTime = 0;
         if (!int.TryParse(value, out matchTime))
             inputMatchTime.text = matchTime.ToString();
-        UpdateNetworkManager();
     }
 
     public void OnMatchKillChanged(string value)
@@ -203,7 +239,6 @@ public class UIPhotonGameCreate : UIBase
         int matchKill = 0;
         if (!int.TryParse(value, out matchKill))
             inputMatchKill.text = matchKill.ToString();
-        UpdateNetworkManager();
     }
 
     public void OnMatchScoreChanged(string value)
@@ -211,21 +246,6 @@ public class UIPhotonGameCreate : UIBase
         int matchScore = 0;
         if (!int.TryParse(value, out matchScore))
             inputMatchScore.text = matchScore.ToString();
-        UpdateNetworkManager();
-    }
-
-    protected void UpdateNetworkManager()
-    {
-        if (dontApplyUpdates)
-            return;
-        
-        var selected = GetSelectedGameRule();
-        var networkGameManager = SimplePhotonNetworkManager.Singleton as BaseNetworkGameManager;
-        selected.botCount = inputBotCount == null ? selected.DefaultBotCount : int.Parse(inputBotCount.text);
-        selected.matchTime = inputMatchTime == null ? selected.DefaultMatchTime : int.Parse(inputMatchTime.text);
-        selected.matchKill = inputMatchKill == null ? selected.DefaultMatchKill : int.Parse(inputMatchKill.text);
-        selected.matchScore = inputMatchScore == null ? selected.DefaultMatchScore : int.Parse(inputMatchScore.text);
-        networkGameManager.SetGameRule(selected);
     }
 
     private void SetupUIs()
