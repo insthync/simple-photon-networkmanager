@@ -250,22 +250,35 @@ public class UIPhotonWaitingRoom : UIBase
 
     private void UpdatePlayerUI(PhotonPlayer player)
     {
-        // If player team changed, recreate waiting player UI
-        if (players[player.ID].GetTeam() != player.GetTeam())
-        {
-            CreatePlayerUI(player);
-            return;
-        }
+        PunTeams.Team team = player.GetTeam();
         if (waitingPlayers.ContainsKey(player.ID))
         {
+            if (team != PunTeams.Team.none)
+            {
+                // If player team changed, recreate waiting player UI
+                CreatePlayerUI(player);
+                return;
+            }
             waitingPlayers[player.ID].SetData(this, player);
         }
         if (waitingTeamAPlayers.ContainsKey(player.ID))
         {
+            if (team != PunTeams.Team.red)
+            {
+                // If player team changed, recreate waiting player UI
+                CreatePlayerUI(player);
+                return;
+            }
             waitingTeamAPlayers[player.ID].SetData(this, player);
         }
         if (waitingTeamBPlayers.ContainsKey(player.ID))
         {
+            if (team != PunTeams.Team.blue)
+            {
+                // If player team changed, recreate waiting player UI
+                CreatePlayerUI(player);
+                return;
+            }
             waitingTeamBPlayers[player.ID].SetData(this, player);
         }
     }
