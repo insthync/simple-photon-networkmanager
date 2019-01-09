@@ -10,18 +10,7 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
         get { return SimplePhotonNetworkManager.Singleton as BaseNetworkGameManager; }
     }
 
-    private PunTeams cacheTeams;
-    public PunTeams Teams
-    {
-        get
-        {
-            if (cacheTeams == null)
-                cacheTeams = GetComponent<PunTeams>();
-            if (cacheTeams == null)
-                cacheTeams = gameObject.AddComponent<PunTeams>();
-            return cacheTeams;
-        }
-    }
+    public PunTeams Teams { get; private set; }
 
     public const string CUSTOM_ROOM_GAME_RULE = "G";
     public const string CUSTOM_ROOM_GAME_RULE_BOT_COUNT = "Gbc";
@@ -37,6 +26,15 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
     public float RemainsMatchTime { get; protected set; }
     public bool IsMatchEnded { get; protected set; }
     public float MatchEndedAt { get; protected set; }
+
+    private void Start()
+    {
+        // Setup required components
+        if (Teams == null)
+            Teams = GetComponent<PunTeams>();
+        if (Teams == null)
+            Teams = gameObject.AddComponent<PunTeams>();
+    }
 
     public int CountAliveCharacters()
     {
