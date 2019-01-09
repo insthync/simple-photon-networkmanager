@@ -264,6 +264,11 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
             customProperties[CUSTOM_ROOM_GAME_RULE_MATCH_KILL] = gameRule == null ? 0 : gameRule.matchKill;
             customProperties[CUSTOM_ROOM_GAME_RULE_MATCH_SCORE] = gameRule == null ? 0 : gameRule.matchScore;
             PhotonNetwork.room.SetCustomProperties(customProperties);
+
+            foreach (var player in PhotonNetwork.playerList)
+            {
+                SetPlayerTeam(player);
+            }
         }
     }
 
@@ -318,20 +323,34 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
 
     public override void OnPhotonPlayerConnected(PhotonPlayer newPlayer)
     {
-        if (!PhotonNetwork.isMasterClient)
-            return;
-
-        if (gameRule == null || !gameRule.IsMatchEnded)
+        if (PhotonNetwork.isMasterClient)
         {
-            int length = 0;
-            List<object> objects;
-            GetSortedScoresAsObjects(out length, out objects);
-            photonView.RPC("RpcUpdateScores", newPlayer, length, objects.ToArray());
-            if (gameRule != null)
-                photonView.RPC("RpcMatchStatus", newPlayer, gameRule.RemainsMatchTime, gameRule.IsMatchEnded);
+            if (gameRule == null || !gameRule.IsMatchEnded)
+            {
+                int length = 0;
+                List<object> objects;
+                GetSortedScoresAsObjects(out length, out objects);
+                photonView.RPC("RpcUpdateScores", newPlayer, length, objects.ToArray());
+                if (gameRule != null)
+                    photonView.RPC("RpcMatchStatus", newPlayer, gameRule.RemainsMatchTime, gameRule.IsMatchEnded);
+            }
+            SetPlayerTeam(newPlayer);
         }
-
         base.OnPhotonPlayerConnected(newPlayer);
+    }
+
+    protected void SetPlayerTeam(PhotonPlayer player)
+    {
+        bool isTeamGameplay = gameRule != null && gameRule.IsTeamGameplay;
+        if (!isTeamGameplay)
+            player.SetTeam(PunTeams.Team.none);
+        else
+        {
+            if (PunTeams.PlayersPerTeam[PunTeams.Team.red].Count > PunTeams.PlayersPerTeam[PunTeams.Team.blue].Count)
+                player.SetTeam(PunTeams.Team.blue);
+            else
+                player.SetTeam(PunTeams.Team.red);
+        }
     }
 
     [PunRPC]
