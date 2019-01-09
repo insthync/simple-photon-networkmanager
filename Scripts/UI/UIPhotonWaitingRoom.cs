@@ -250,6 +250,12 @@ public class UIPhotonWaitingRoom : UIBase
 
     private void UpdatePlayerUI(PhotonPlayer player)
     {
+        // If player team changed, recreate waiting player UI
+        if (players[player.ID].GetTeam() != player.GetTeam())
+        {
+            CreatePlayerUI(player);
+            return;
+        }
         if (waitingPlayers.ContainsKey(player.ID))
         {
             waitingPlayers[player.ID].SetData(this, player);
@@ -279,13 +285,7 @@ public class UIPhotonWaitingRoom : UIBase
     private void OnPlayerPropertiesChangedCallback(PhotonPlayer player, Hashtable props)
     {
         if (players.ContainsKey(player.ID))
-        {
-            // If player team changed, recreate waiting player UI
-            if (players[player.ID].GetTeam() != player.GetTeam())
-                CreatePlayerUI(player);
-            else
-                UpdatePlayerUI(player);
-        }
+            UpdatePlayerUI(player);
         else
             CreatePlayerUI(player);
     }
