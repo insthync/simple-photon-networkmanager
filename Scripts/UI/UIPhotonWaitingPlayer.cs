@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using PlayerState = SimplePhotonNetworkManager.PlayerState;
 
 public class UIPhotonWaitingPlayer : MonoBehaviour
 {
@@ -18,19 +19,21 @@ public class UIPhotonWaitingPlayer : MonoBehaviour
     {
         Room = room;
         Data = data;
-        var state = (byte) data.CustomProperties[SimplePhotonNetworkManager.CUSTOM_PLAYER_STATE];
+        PlayerState state = PlayerState.NotReady;
+        if (data.CustomProperties.ContainsKey(SimplePhotonNetworkManager.CUSTOM_PLAYER_STATE))
+            state = (PlayerState)(byte)data.CustomProperties[SimplePhotonNetworkManager.CUSTOM_PLAYER_STATE];
 
         if (textPlayerName != null)
             textPlayerName.text = data.NickName;
 
         if (textPlayerState != null)
         {
-            switch ((SimplePhotonNetworkManager.PlayerState) state)
+            switch (state)
             {
-                case SimplePhotonNetworkManager.PlayerState.Ready:
+                case PlayerState.Ready:
                     textPlayerState.text = playerStateReady;
                     break;
-                case SimplePhotonNetworkManager.PlayerState.NotReady:
+                case PlayerState.NotReady:
                     textPlayerState.text = playerStateNotReady;
                     break;
             }
