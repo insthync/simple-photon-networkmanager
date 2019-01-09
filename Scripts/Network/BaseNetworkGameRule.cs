@@ -4,9 +4,9 @@ using Hashtable = ExitGames.Client.Photon.Hashtable;
 
 public abstract class BaseNetworkGameRule : ScriptableObject
 {
-    public const string MatchTimeCountdownKey = "rTCD";
-    public const string BotAddedKey = "rBAD";
-    public const string IsMatchEndedKey = "rEND";
+    public const string MatchTimeCountdownKey = "rCD";
+    public const string BotAddedKey = "rBA";
+    public const string IsMatchEndedKey = "rMN";
     public const string BotCountKey = "rBC";
     public const string MatchTimeKey = "rMT";
     public const string MatchKillKey = "rMK";
@@ -98,6 +98,8 @@ public abstract class BaseNetworkGameRule : ScriptableObject
         protected set { if (PhotonNetwork.isMasterClient) PhotonNetwork.room.SetCustomProperties(new Hashtable() { { MatchScoreKey, value } }); }
     }
 
+    private float matchTimeReduceTimer;
+
     public virtual void AddBots()
     {
         if (!HasOptionBotCount)
@@ -142,8 +144,13 @@ public abstract class BaseNetworkGameRule : ScriptableObject
             IsBotAdded = true;
         }
 
-        if (MatchTimeCountdown > 0)
-            MatchTimeCountdown -= Time.unscaledDeltaTime;
+        // Make match time reduce every seconds (not every loops)
+        matchTimeReduceTimer += Time.unscaledDeltaTime;
+        if (matchTimeReduceTimer >= 1)
+        {
+            matchTimeReduceTimer = 0;
+            MatchTimeCountdown -= 1f;
+        }
 
         if (HasOptionMatchTime && MatchTime > 0 && MatchTimeCountdown <= 0 && !IsMatchEnded)
         {
