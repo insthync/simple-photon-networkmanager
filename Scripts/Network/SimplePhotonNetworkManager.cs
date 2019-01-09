@@ -342,19 +342,11 @@ public class SimplePhotonNetworkManager : PunBehaviour
                 // If master client joined room, wait for scene change if needed
                 StartCoroutine(MasterWaitOnlineSceneLoaded());
             }
-
-            // Set player state to ready (master client always ready)
-            var customProperties = PhotonNetwork.player.CustomProperties;
-            customProperties[CUSTOM_PLAYER_STATE] = (byte)PlayerState.Ready;
-            PhotonNetwork.player.SetCustomProperties(customProperties);
         }
-        else
-        {
-            // Set player state to not ready
-            var customProperties = PhotonNetwork.player.CustomProperties;
-            customProperties[CUSTOM_PLAYER_STATE] = (byte)PlayerState.NotReady;
-            PhotonNetwork.player.SetCustomProperties(customProperties);
-        }
+        // Set player state to not ready
+        var customProperties = PhotonNetwork.player.CustomProperties;
+        customProperties[CUSTOM_PLAYER_STATE] = (byte)PlayerState.NotReady;
+        PhotonNetwork.player.SetCustomProperties(customProperties);
         if (onJoinedRoom != null)
             onJoinedRoom.Invoke();
     }
@@ -393,10 +385,13 @@ public class SimplePhotonNetworkManager : PunBehaviour
     public override void OnPhotonPlayerConnected(PhotonPlayer newPlayer)
     {
         if (isLog) Debug.Log("OnPhotonPlayerConnected");
-        // Set player state to not ready
-        var customProperties = newPlayer.CustomProperties;
-        customProperties[CUSTOM_PLAYER_STATE] = (byte)PlayerState.NotReady;
-        newPlayer.SetCustomProperties(customProperties);
+        if (PhotonNetwork.isMasterClient)
+        {
+            // Set player state to not ready
+            var customProperties = newPlayer.CustomProperties;
+            customProperties[CUSTOM_PLAYER_STATE] = (byte)PlayerState.NotReady;
+            newPlayer.SetCustomProperties(customProperties);
+        }
         if (onPlayerConnected != null)
             onPlayerConnected.Invoke(newPlayer);
     }
