@@ -27,6 +27,8 @@ public class UIPhotonWaitingRoom : UIBase
     public Transform waitingPlayerTeamBListContainer;
     public GameObject[] hostObjects;
     public GameObject[] nonHostObjects;
+    public bool hostAlwaysReady = true;
+    public int autoStartGameWhenPlayersReady = 0;
     public int HostPlayerID { get; private set; }
 
     private readonly Dictionary<int, PhotonPlayer> players = new Dictionary<int, PhotonPlayer>();
@@ -42,6 +44,7 @@ public class UIPhotonWaitingRoom : UIBase
         SimplePhotonNetworkManager.onPlayerDisconnected += OnPlayerDisconnectedCallback;
         SimplePhotonNetworkManager.onPlayerPropertiesChanged += OnPlayerPropertiesChangedCallback;
         SimplePhotonNetworkManager.onCustomRoomPropertiesChanged += OnCustomRoomPropertiesChangedCallback;
+        SimplePhotonNetworkManager.onMasterClientSwitched += OnMasterClientSwitchedCallback;
         OnJoinedRoomCallback();
     }
 
@@ -53,6 +56,7 @@ public class UIPhotonWaitingRoom : UIBase
         SimplePhotonNetworkManager.onPlayerDisconnected -= OnPlayerDisconnectedCallback;
         SimplePhotonNetworkManager.onPlayerPropertiesChanged -= OnPlayerPropertiesChangedCallback;
         SimplePhotonNetworkManager.onCustomRoomPropertiesChanged -= OnCustomRoomPropertiesChangedCallback;
+        SimplePhotonNetworkManager.onMasterClientSwitched -= OnMasterClientSwitchedCallback;
     }
 
     private void OnDestroy()
@@ -62,6 +66,7 @@ public class UIPhotonWaitingRoom : UIBase
         SimplePhotonNetworkManager.onPlayerDisconnected -= OnPlayerDisconnectedCallback;
         SimplePhotonNetworkManager.onPlayerPropertiesChanged -= OnPlayerPropertiesChangedCallback;
         SimplePhotonNetworkManager.onCustomRoomPropertiesChanged -= OnCustomRoomPropertiesChangedCallback;
+        SimplePhotonNetworkManager.onMasterClientSwitched -= OnMasterClientSwitchedCallback;
     }
 
     private void UpdateRoomData()
@@ -159,7 +164,7 @@ public class UIPhotonWaitingRoom : UIBase
 
     public virtual void OnClickChangeTeam()
     {
-
+        BaseNetworkGameManager.Singleton.ChangePlayerTeam();
     }
 
     private void OnJoinedRoomCallback()
@@ -199,6 +204,8 @@ public class UIPhotonWaitingRoom : UIBase
         {
             nonHostObject.SetActive(HostPlayerID != PhotonNetwork.player.ID);
         }
+        if (PhotonNetwork.player.IsMasterClient && hostAlwaysReady)
+            SimplePhotonNetworkManager.Singleton.SetPlayerState(SimplePhotonNetworkManager.PlayerState.Ready);
     }
 
     private void DestroyPlayerUI(int id)
@@ -301,6 +308,13 @@ public class UIPhotonWaitingRoom : UIBase
             UpdatePlayerUI(player);
         else
             CreatePlayerUI(player);
+
+        if (PhotonNetwork.isMasterClient && autoStartGameWhenPlayersReady > 0 && 
+            SimplePhotonNetworkManager.Singleton.CountPlayerWithState(SimplePhotonNetworkManager.PlayerState.Ready) >= autoStartGameWhenPlayersReady)
+        {
+            // Start game automatically when ready player reached `autoStartGameWhenPlayersReady` amount
+            OnClickStartGame();
+        }
     }
 
     private void OnCustomRoomPropertiesChangedCallback(Hashtable propertiesThatChanged)
@@ -310,13 +324,16 @@ public class UIPhotonWaitingRoom : UIBase
         var playerId = (int)customProperties[SimplePhotonNetworkManager.CUSTOM_ROOM_PLAYER_ID];
         if (playerId != HostPlayerID)
         {
-            // Host always ready
-            if (playerId == PhotonNetwork.player.ID)
-                SimplePhotonNetworkManager.Singleton.SetPlayerState(SimplePhotonNetworkManager.PlayerState.Ready);
-            // Update with `OnJoinedRoomCallback` to refresh or data
+            // Update with `OnJoinedRoomCallback` to refresh all data
             OnJoinedRoomCallback();
         }
         else
             UpdateRoomData();
+    }
+
+    private void OnMasterClientSwitchedCallback(PhotonPlayer player)
+    {
+        if (hostAlwaysReady && player.IsLocal)
+            SimplePhotonNetworkManager.Singleton.SetPlayerState(SimplePhotonNetworkManager.PlayerState.Ready);
     }
 }

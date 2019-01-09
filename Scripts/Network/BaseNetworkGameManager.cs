@@ -319,6 +319,13 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
         startUpdateGameRule = true;
     }
 
+    public override void OnJoinedRoom()
+    {
+        if (PhotonNetwork.isMasterClient)
+            SetPlayerTeam(PhotonNetwork.player);
+        base.OnJoinedRoom();
+    }
+
     public override void OnPhotonPlayerConnected(PhotonPlayer newPlayer)
     {
         if (PhotonNetwork.isMasterClient)
@@ -351,6 +358,11 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
         }
     }
 
+    public void ChangePlayerTeam()
+    {
+        photonView.RPC("RpcChangePlayerTeam", PhotonTargets.MasterClient, PhotonNetwork.player.ID);
+    }
+
     [PunRPC]
     protected void RpcUpdateScores(int length, object[] objects)
     {
@@ -380,6 +392,33 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
         {
             IsMatchEnded = true;
             MatchEndedAt = Time.unscaledTime;
+        }
+    }
+
+    [PunRPC]
+    protected void RpcChangePlayerTeam(int id)
+    {
+        PhotonPlayer foundPlayer = GetPlayerById(id);
+        if (foundPlayer != null)
+        {
+            bool isTeamGameplay = gameRule != null && gameRule.IsTeamGameplay;
+            if (!isTeamGameplay)
+                foundPlayer.SetTeam(PunTeams.Team.none);
+            else
+            {
+                var maxPlayerEachTeam = PhotonNetwork.room.MaxPlayers / 2;
+                switch (foundPlayer.GetTeam())
+                {
+                    case PunTeams.Team.red:
+                        if (PunTeams.PlayersPerTeam[PunTeams.Team.blue].Count < maxPlayerEachTeam)
+                            foundPlayer.SetTeam(PunTeams.Team.blue);
+                        break;
+                    default:
+                        if (PunTeams.PlayersPerTeam[PunTeams.Team.red].Count < maxPlayerEachTeam)
+                            foundPlayer.SetTeam(PunTeams.Team.red);
+                        break;
+                }
+            }
         }
     }
 

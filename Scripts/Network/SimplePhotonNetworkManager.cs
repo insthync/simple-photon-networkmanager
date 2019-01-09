@@ -39,6 +39,7 @@ public class SimplePhotonNetworkManager : PunBehaviour
     public static System.Action<PhotonPlayer> onPlayerConnected;
     public static System.Action<PhotonPlayer> onPlayerDisconnected;
     public static System.Action<PhotonPlayer, Hashtable> onPlayerPropertiesChanged;
+    public static System.Action<PhotonPlayer> onMasterClientSwitched;
     public static System.Action<Hashtable> onCustomRoomPropertiesChanged;
 
     public bool isLog;
@@ -380,6 +381,8 @@ public class SimplePhotonNetworkManager : PunBehaviour
         customProperties[CUSTOM_ROOM_PLAYER_ID] = newMasterClient.ID;
         customProperties[CUSTOM_ROOM_PLAYER_NAME] = newMasterClient.NickName;
         PhotonNetwork.room.SetCustomProperties(customProperties);
+        if (onMasterClientSwitched != null)
+            onMasterClientSwitched.Invoke(newMasterClient);
     }
 
     public override void OnPhotonPlayerConnected(PhotonPlayer newPlayer)
@@ -475,6 +478,18 @@ public class SimplePhotonNetworkManager : PunBehaviour
             }
         }
         return foundPlayer;
+    }
+
+    public int CountPlayerWithState(PlayerState state)
+    {
+        int result = 0;
+        foreach (var player in PhotonNetwork.playerList)
+        {
+            object stateObject;
+            if (player.CustomProperties.TryGetValue(CUSTOM_PLAYER_STATE, out stateObject) && (PlayerState)stateObject == state)
+                result++;
+        }
+        return result;
     }
 
     [PunRPC]
