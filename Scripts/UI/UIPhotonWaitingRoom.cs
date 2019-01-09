@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using Hashtable = ExitGames.Client.Photon.Hashtable;
+using PlayerState = SimplePhotonNetworkManager.PlayerState;
 
 public class UIPhotonWaitingRoom : UIBase
 {
@@ -28,7 +29,8 @@ public class UIPhotonWaitingRoom : UIBase
     public GameObject[] hostObjects;
     public GameObject[] nonHostObjects;
     public bool hostAlwaysReady = true;
-    public int autoStartGameWhenPlayersReady = 0;
+    public int autoStartWhenPlayersReadyAtLeast = 0;
+    public int canStartWhenPlayersReadyAtLeast = 0;
     public int HostPlayerID { get; private set; }
 
     private readonly Dictionary<int, PhotonPlayer> players = new Dictionary<int, PhotonPlayer>();
@@ -154,7 +156,8 @@ public class UIPhotonWaitingRoom : UIBase
 
     public virtual void OnClickStartGame()
     {
-        SimplePhotonNetworkManager.Singleton.StartGame();
+        if (SimplePhotonNetworkManager.Singleton.CountPlayerWithState(PlayerState.Ready) >= canStartWhenPlayersReadyAtLeast)
+            SimplePhotonNetworkManager.Singleton.StartGame();
     }
 
     public virtual void OnClickReady()
@@ -205,7 +208,7 @@ public class UIPhotonWaitingRoom : UIBase
             nonHostObject.SetActive(HostPlayerID != PhotonNetwork.player.ID);
         }
         if (PhotonNetwork.player.IsMasterClient && hostAlwaysReady)
-            SimplePhotonNetworkManager.Singleton.SetPlayerState(SimplePhotonNetworkManager.PlayerState.Ready);
+            SimplePhotonNetworkManager.Singleton.SetPlayerState(PlayerState.Ready);
     }
 
     private void DestroyPlayerUI(int id)
@@ -309,8 +312,8 @@ public class UIPhotonWaitingRoom : UIBase
         else
             CreatePlayerUI(player);
 
-        if (PhotonNetwork.isMasterClient && autoStartGameWhenPlayersReady > 0 && 
-            SimplePhotonNetworkManager.Singleton.CountPlayerWithState(SimplePhotonNetworkManager.PlayerState.Ready) >= autoStartGameWhenPlayersReady)
+        if (PhotonNetwork.isMasterClient && autoStartWhenPlayersReadyAtLeast > 0 && 
+            SimplePhotonNetworkManager.Singleton.CountPlayerWithState(PlayerState.Ready) >= autoStartWhenPlayersReadyAtLeast)
         {
             // Start game automatically when ready player reached `autoStartGameWhenPlayersReady` amount
             OnClickStartGame();
@@ -334,6 +337,6 @@ public class UIPhotonWaitingRoom : UIBase
     private void OnMasterClientSwitchedCallback(PhotonPlayer player)
     {
         if (hostAlwaysReady && player.IsLocal)
-            SimplePhotonNetworkManager.Singleton.SetPlayerState(SimplePhotonNetworkManager.PlayerState.Ready);
+            SimplePhotonNetworkManager.Singleton.SetPlayerState(PlayerState.Ready);
     }
 }
