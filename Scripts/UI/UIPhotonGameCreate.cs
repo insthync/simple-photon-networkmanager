@@ -172,6 +172,13 @@ public class UIPhotonGameCreate : UIBase
             maxPlayer = maxPlayerCustomizable;
             inputMaxPlayer.text = maxPlayer.ToString();
         }
+        // Force max player to be even number
+        byte evenAmount = (byte)((int)maxPlayer / 2 * 2);
+        if (maxPlayer != evenAmount)
+        {
+            maxPlayer = evenAmount;
+            inputMaxPlayer.text = maxPlayer.ToString();
+        }
         SimplePhotonNetworkManager.Singleton.maxConnections = maxPlayer;
     }
 
