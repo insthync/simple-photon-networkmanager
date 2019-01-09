@@ -181,6 +181,15 @@ public class SimplePhotonNetworkManager : PunBehaviour
         }
     }
 
+    public void SetMaxConnections(byte maxConnections)
+    {
+        this.maxConnections = maxConnections;
+        if (PhotonNetwork.inRoom && PhotonNetwork.isMasterClient)
+        {
+            PhotonNetwork.room.MaxPlayers = maxConnections;
+        }
+    }
+
     public void SetRoomOnlineScene(SceneNameField onlineScene)
     {
         // If room not created, set data to field to use later
