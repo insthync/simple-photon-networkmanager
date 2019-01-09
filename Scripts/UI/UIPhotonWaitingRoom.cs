@@ -254,6 +254,14 @@ public class UIPhotonWaitingRoom : UIBase
         {
             waitingPlayers[player.ID].SetData(this, player);
         }
+        if (waitingTeamAPlayers.ContainsKey(player.ID))
+        {
+            waitingTeamAPlayers[player.ID].SetData(this, player);
+        }
+        if (waitingTeamBPlayers.ContainsKey(player.ID))
+        {
+            waitingTeamBPlayers[player.ID].SetData(this, player);
+        }
     }
 
     private void OnPlayerConnectedCallback(PhotonPlayer player)
@@ -271,7 +279,13 @@ public class UIPhotonWaitingRoom : UIBase
     private void OnPlayerPropertiesChangedCallback(PhotonPlayer player, Hashtable props)
     {
         if (players.ContainsKey(player.ID))
-            UpdatePlayerUI(player);
+        {
+            // If player team changed, recreate waiting player UI
+            if (players[player.ID].GetTeam() != player.GetTeam())
+                CreatePlayerUI(player);
+            else
+                UpdatePlayerUI(player);
+        }
         else
             CreatePlayerUI(player);
     }
