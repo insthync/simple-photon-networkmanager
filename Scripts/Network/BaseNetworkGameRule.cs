@@ -11,6 +11,10 @@ public abstract class BaseNetworkGameRule : ScriptableObject
     public const string MatchTimeKey = "rMT";
     public const string MatchKillKey = "rMK";
     public const string MatchScoreKey = "rMS";
+    public const string TeamScoreAKey = "tSA";
+    public const string TeamScoreBKey = "tSB";
+    public const string TeamKillAKey = "tKA";
+    public const string TeamKillBKey = "tKB";
 
     [SerializeField]
     private string title;
@@ -56,8 +60,6 @@ public abstract class BaseNetworkGameRule : ScriptableObject
     protected readonly List<BaseNetworkGameCharacter> Bots = new List<BaseNetworkGameCharacter>();
     protected readonly Dictionary<int, int> CharacterCollectedScore = new Dictionary<int, int>();
     protected readonly Dictionary<int, int> CharacterCollectedKill = new Dictionary<int, int>();
-    protected readonly Dictionary<PunTeams.Team, int> TeamKill = new Dictionary<PunTeams.Team, int>();
-    protected readonly Dictionary<PunTeams.Team, int> TeamScore = new Dictionary<PunTeams.Team, int>();
 
     public float RemainsMatchTime
     {
@@ -103,6 +105,26 @@ public abstract class BaseNetworkGameRule : ScriptableObject
     {
         get { try { return (int)PhotonNetwork.room.CustomProperties[MatchScoreKey]; } catch { } return 0; }
         protected set { if (PhotonNetwork.isMasterClient) PhotonNetwork.room.SetCustomProperties(new Hashtable() { { MatchScoreKey, value } }); }
+    }
+    public int TeamScoreA
+    {
+        get { try { return (int)PhotonNetwork.room.CustomProperties[TeamScoreAKey]; } catch { } return 0; }
+        protected set { if (PhotonNetwork.isMasterClient) PhotonNetwork.room.SetCustomProperties(new Hashtable() { { TeamScoreAKey, value } }); }
+    }
+    public int TeamScoreB
+    {
+        get { try { return (int)PhotonNetwork.room.CustomProperties[TeamScoreBKey]; } catch { } return 0; }
+        protected set { if (PhotonNetwork.isMasterClient) PhotonNetwork.room.SetCustomProperties(new Hashtable() { { TeamScoreBKey, value } }); }
+    }
+    public int TeamKillA
+    {
+        get { try { return (int)PhotonNetwork.room.CustomProperties[TeamKillAKey]; } catch { } return 0; }
+        protected set { if (PhotonNetwork.isMasterClient) PhotonNetwork.room.SetCustomProperties(new Hashtable() { { TeamKillAKey, value } }); }
+    }
+    public int TeamKillB
+    {
+        get { try { return (int)PhotonNetwork.room.CustomProperties[TeamKillBKey]; } catch { } return 0; }
+        protected set { if (PhotonNetwork.isMasterClient) PhotonNetwork.room.SetCustomProperties(new Hashtable() { { TeamKillBKey, value } }); }
     }
 
     private float matchTimeReduceTimer;
@@ -206,10 +228,15 @@ public abstract class BaseNetworkGameRule : ScriptableObject
 
         if (IsTeamGameplay)
         {
-            if (!TeamScore.ContainsKey(character.playerTeam))
-                TeamScore[character.playerTeam] = increaseAmount;
-            else
-                TeamScore[character.playerTeam] += increaseAmount;
+            switch (character.playerTeam)
+            {
+                case PunTeams.Team.red:
+                    TeamScoreA += increaseAmount;
+                    break;
+                case PunTeams.Team.blue:
+                    TeamScoreB += increaseAmount;
+                    break;
+            }
         }
     }
 
@@ -222,10 +249,15 @@ public abstract class BaseNetworkGameRule : ScriptableObject
 
         if (IsTeamGameplay)
         {
-            if (!TeamKill.ContainsKey(character.playerTeam))
-                TeamKill[character.playerTeam] = increaseAmount;
-            else
-                TeamKill[character.playerTeam] += increaseAmount;
+            switch (character.playerTeam)
+            {
+                case PunTeams.Team.red:
+                    TeamKillA += increaseAmount;
+                    break;
+                case PunTeams.Team.blue:
+                    TeamKillB += increaseAmount;
+                    break;
+            }
         }
     }
 
@@ -235,14 +267,18 @@ public abstract class BaseNetworkGameRule : ScriptableObject
         int checkKill = character.KillCount;
         if (IsTeamGameplay)
         {
-            // Avoid team score, team kill null references
-            if (!TeamScore.ContainsKey(character.playerTeam))
-                TeamScore[character.playerTeam] = 0;
-            if (!TeamKill.ContainsKey(character.playerTeam))
-                TeamKill[character.playerTeam] = 0;
             // Use team score / kill as checker
-            checkScore = TeamScore[character.playerTeam];
-            checkKill = TeamKill[character.playerTeam];
+            switch (character.playerTeam)
+            {
+                case PunTeams.Team.red:
+                    checkScore = TeamScoreA;
+                    checkKill = TeamKillA;
+                    break;
+                case PunTeams.Team.blue:
+                    checkScore = TeamScoreB;
+                    checkKill = TeamKillB;
+                    break;
+            }
         }
 
         if (HasOptionMatchScore && MatchScore > 0 && checkScore >= MatchScore)
