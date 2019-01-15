@@ -19,6 +19,11 @@ public abstract class BaseNetworkGameCharacter : PunBehaviour, System.IComparabl
         get { return (photonView != null && photonView.owner != null) ? photonView.owner.NickName : ""; }
         set { if (photonView.isMine) photonView.owner.NickName = value; }
     }
+    public virtual PunTeams.Team playerTeam
+    {
+        get { return (photonView != null && photonView.owner != null) ? photonView.owner.GetTeam() : PunTeams.Team.none; }
+        set { if (photonView.isMine) photonView.owner.SetTeam(value); }
+    }
     public int score
     {
         get { return _score; }
