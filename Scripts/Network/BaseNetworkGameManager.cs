@@ -130,6 +130,9 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
 
     protected virtual void ServerUpdate()
     {
+        if (GetRoomState() == RoomState.Waiting)
+            return;
+
         if (gameRule != null && startUpdateGameRule)
             gameRule.OnUpdate();
 
@@ -320,14 +323,17 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
     public override void OnMasterClientSwitched(PhotonPlayer newMasterClient)
     {
         base.OnMasterClientSwitched(newMasterClient);
-        Characters.Clear();
-        var characters = FindObjectsOfType<BaseNetworkGameCharacter>();
-        foreach (var character in characters)
+        if (GetRoomState() == RoomState.Playing)
         {
-            Characters.Add(character);
+            Characters.Clear();
+            var characters = FindObjectsOfType<BaseNetworkGameCharacter>();
+            foreach (var character in characters)
+            {
+                Characters.Add(character);
+            }
+            if (gameRule != null)
+                gameRule.OnMasterChange(this);
         }
-        if (gameRule != null)
-            gameRule.OnMasterChange(this);
         startUpdateGameRule = true;
     }
 
@@ -342,7 +348,7 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
     {
         if (PhotonNetwork.isMasterClient)
         {
-            if (gameRule != null && !gameRule.IsMatchEnded)
+            if (GetRoomState() == RoomState.Playing && gameRule != null && !gameRule.IsMatchEnded)
             {
                 int length = 0;
                 List<object> objects;
@@ -363,7 +369,7 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
         base.OnPhotonPlayerDisconnected(otherPlayer);
         if (PhotonNetwork.isMasterClient)
         {
-            if (gameRule != null && !gameRule.IsMatchEnded)
+            if (GetRoomState() == RoomState.Playing && gameRule != null && !gameRule.IsMatchEnded)
             {
                 // Adjust bots
                 gameRule.AdjustBots();

@@ -547,4 +547,16 @@ public class SimplePhotonNetworkManager : PunBehaviour
         if (onDisconnected != null)
             onDisconnected.Invoke();
     }
+
+    public static RoomState GetRoomState()
+    {
+        if (!PhotonNetwork.inRoom)
+            return RoomState.Waiting;
+
+        var customProperties = PhotonNetwork.room.CustomProperties;
+        if (customProperties.ContainsKey(CUSTOM_PLAYER_STATE))
+            return (RoomState)customProperties[CUSTOM_PLAYER_STATE];
+
+        return RoomState.Waiting;
+    }
 }
