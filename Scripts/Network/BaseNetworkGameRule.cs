@@ -119,8 +119,6 @@ public abstract class BaseNetworkGameRule : ScriptableObject
         for (var i = 0; i < addAmount; ++i)
         {
             var character = NewBot();
-            if (character == null)
-                continue;
             networkManager.RegisterCharacter(character);
             Bots.Add(character);
         }
@@ -137,7 +135,12 @@ public abstract class BaseNetworkGameRule : ScriptableObject
             // Adjust bot count
             if (PhotonNetwork.room.PlayerCount + addAmount > PhotonNetwork.room.MaxPlayers)
                 addAmount = PhotonNetwork.room.MaxPlayers - PhotonNetwork.room.PlayerCount;
-            return;
+            for (var i = 0; i < addAmount; ++i)
+            {
+                var character = NewBot();
+                networkManager.RegisterCharacter(character);
+                Bots.Add(character);
+            }
         }
         // Remove bots if needed
         while (PhotonNetwork.room.PlayerCount + Bots.Count > PhotonNetwork.room.MaxPlayers)
