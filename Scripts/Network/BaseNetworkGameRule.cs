@@ -53,10 +53,11 @@ public abstract class BaseNetworkGameRule : ScriptableObject
     public abstract bool CanCharacterRespawn(BaseNetworkGameCharacter character, params object[] extraParams);
     public abstract bool RespawnCharacter(BaseNetworkGameCharacter character, params object[] extraParams);
 
-    protected Dictionary<int, int> CharacterCollectedScore = new Dictionary<int, int>();
-    protected Dictionary<int, int> CharacterCollectedKill = new Dictionary<int, int>();
-    protected Dictionary<PunTeams.Team, int> TeamKill = new Dictionary<PunTeams.Team, int>();
-    protected Dictionary<PunTeams.Team, int> TeamScore = new Dictionary<PunTeams.Team, int>();
+    protected readonly List<BaseNetworkGameCharacter> Bots = new List<BaseNetworkGameCharacter>();
+    protected readonly Dictionary<int, int> CharacterCollectedScore = new Dictionary<int, int>();
+    protected readonly Dictionary<int, int> CharacterCollectedKill = new Dictionary<int, int>();
+    protected readonly Dictionary<PunTeams.Team, int> TeamKill = new Dictionary<PunTeams.Team, int>();
+    protected readonly Dictionary<PunTeams.Team, int> TeamScore = new Dictionary<PunTeams.Team, int>();
 
     public float RemainsMatchTime
     {
@@ -110,13 +111,40 @@ public abstract class BaseNetworkGameRule : ScriptableObject
     {
         if (!HasOptionBotCount)
             return;
-
-        for (var i = 0; i < BotCount; ++i)
+        int addAmount = BotCount;
+        // Adjust bot count
+        if (PhotonNetwork.room.PlayerCount + addAmount > PhotonNetwork.room.MaxPlayers)
+            addAmount = PhotonNetwork.room.MaxPlayers - PhotonNetwork.room.PlayerCount;
+        for (var i = 0; i < addAmount; ++i)
         {
             var character = NewBot();
             if (character == null)
                 continue;
             networkManager.RegisterCharacter(character);
+            Bots.Add(character);
+        }
+    }
+
+    public virtual void AdjustBots()
+    {
+        if (!HasOptionBotCount)
+            return;
+        // Add bots if needed
+        if (Bots.Count < BotCount && PhotonNetwork.room.PlayerCount + Bots.Count < PhotonNetwork.room.MaxPlayers)
+        {
+            int addAmount = BotCount;
+            // Adjust bot count
+            if (PhotonNetwork.room.PlayerCount + addAmount > PhotonNetwork.room.MaxPlayers)
+                addAmount = PhotonNetwork.room.MaxPlayers - PhotonNetwork.room.PlayerCount;
+            return;
+        }
+        // Remove bots if needed
+        while (PhotonNetwork.room.PlayerCount + Bots.Count > PhotonNetwork.room.MaxPlayers)
+        {
+            int index = Bots.Count - 1;
+            BaseNetworkGameCharacter botCharacter = Bots[index];
+            PhotonNetwork.Destroy(botCharacter.photonView);
+            Bots.RemoveAt(index);
         }
     }
 

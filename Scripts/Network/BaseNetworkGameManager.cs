@@ -135,7 +135,7 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
 
         if (Time.unscaledTime - updateScoreTime >= 1f)
         {
-            if (gameRule == null || !gameRule.IsMatchEnded)
+            if (gameRule != null && !gameRule.IsMatchEnded)
             {
                 int length = 0;
                 List<object> objects;
@@ -342,7 +342,7 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
     {
         if (PhotonNetwork.isMasterClient)
         {
-            if (gameRule == null || !gameRule.IsMatchEnded)
+            if (gameRule != null && !gameRule.IsMatchEnded)
             {
                 int length = 0;
                 List<object> objects;
@@ -350,10 +350,25 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
                 photonView.RPC("RpcUpdateScores", newPlayer, length, objects.ToArray());
                 if (gameRule != null)
                     photonView.RPC("RpcMatchStatus", newPlayer, gameRule.RemainsMatchTime, gameRule.IsMatchEnded);
+                // Adjust bots
+                gameRule.AdjustBots();
             }
             SetPlayerTeam(newPlayer);
         }
         base.OnPhotonPlayerConnected(newPlayer);
+    }
+
+    public override void OnPhotonPlayerDisconnected(PhotonPlayer otherPlayer)
+    {
+        base.OnPhotonPlayerDisconnected(otherPlayer);
+        if (PhotonNetwork.isMasterClient)
+        {
+            if (gameRule != null && !gameRule.IsMatchEnded)
+            {
+                // Adjust bots
+                gameRule.AdjustBots();
+            }
+        }
     }
 
     protected void SetPlayerTeam(PhotonPlayer player)
