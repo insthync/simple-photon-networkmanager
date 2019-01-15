@@ -76,12 +76,12 @@ public class SimplePhotonNetworkManager : PunBehaviour
         if (view == null)
             view = gameObject.AddComponent<PhotonView>();
         view.viewID = UNIQUE_VIEW_ID;
-        SceneManager.activeSceneChanged += OnSceneChanged;
+        SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
     protected virtual void OnDestroy()
     {
-        SceneManager.activeSceneChanged -= OnSceneChanged;
+        SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
     public virtual void ConnectToMaster()
@@ -367,7 +367,6 @@ public class SimplePhotonNetworkManager : PunBehaviour
         {
             yield return null;
         }
-        OnPhotonPlayerConnected(PhotonNetwork.player);
     }
 
     public override void OnConnectedToMaster()
@@ -397,13 +396,6 @@ public class SimplePhotonNetworkManager : PunBehaviour
     public override void OnPhotonPlayerConnected(PhotonPlayer newPlayer)
     {
         if (isLog) Debug.Log("OnPhotonPlayerConnected");
-        if (PhotonNetwork.isMasterClient)
-        {
-            // Set player state to not ready
-            var customProperties = newPlayer.CustomProperties;
-            customProperties[CUSTOM_PLAYER_STATE] = (byte)PlayerState.NotReady;
-            newPlayer.SetCustomProperties(customProperties);
-        }
         if (onPlayerConnected != null)
             onPlayerConnected.Invoke(newPlayer);
     }
@@ -429,9 +421,17 @@ public class SimplePhotonNetworkManager : PunBehaviour
             onCustomRoomPropertiesChanged.Invoke(propertiesThatChanged);
     }
 
-    private void OnSceneChanged(Scene current, Scene next)
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        if (next.name == onlineScene.SceneName && PhotonNetwork.inRoom)
+        StartCoroutine(OnSceneLoadedRoutine(scene, mode));
+    }
+
+    IEnumerator OnSceneLoadedRoutine(Scene scene, LoadSceneMode mode)
+    {
+        yield return null;
+        while (!PhotonNetwork.isMessageQueueRunning)
+            yield return null;
+        if (scene.name == onlineScene.SceneName && PhotonNetwork.inRoom)
         {
             // Send client ready to spawn player at master client
             OnOnlineSceneChanged();
