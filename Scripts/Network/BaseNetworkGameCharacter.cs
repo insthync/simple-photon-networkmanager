@@ -139,6 +139,16 @@ public abstract class BaseNetworkGameCharacter : PunBehaviour, System.IComparabl
         Init();
     }
 
+    protected virtual void SyncData()
+    {
+        if (!PhotonNetwork.isMasterClient)
+            return;
+        photonView.RPC("RpcUpdateScore", PhotonTargets.Others, score);
+        photonView.RPC("RpcUpdateKillCount", PhotonTargets.Others, killCount);
+        photonView.RPC("RpcUpdateAssistCount", PhotonTargets.Others, assistCount);
+        photonView.RPC("RpcUpdateDieCount", PhotonTargets.Others, dieCount);
+    }
+
     public override void OnPhotonPlayerConnected(PhotonPlayer newPlayer)
     {
         if (!PhotonNetwork.isMasterClient)
@@ -151,6 +161,7 @@ public abstract class BaseNetworkGameCharacter : PunBehaviour, System.IComparabl
 
     protected virtual void OnStartServer()
     {
+        SyncData();
     }
 
     protected virtual void OnStartClient()
