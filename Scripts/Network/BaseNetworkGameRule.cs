@@ -52,6 +52,12 @@ public abstract class BaseNetworkGameRule : ScriptableObject
     public virtual bool ShowZeroDieCountWhenDead { get { return false; ; } }
     public abstract bool CanCharacterRespawn(BaseNetworkGameCharacter character, params object[] extraParams);
     public abstract bool RespawnCharacter(BaseNetworkGameCharacter character, params object[] extraParams);
+
+    protected Dictionary<int, int> CharacterCollectedScore = new Dictionary<int, int>();
+    protected Dictionary<int, int> CharacterCollectedKill = new Dictionary<int, int>();
+    protected Dictionary<PunTeams.Team, int> TeamKill = new Dictionary<PunTeams.Team, int>();
+    protected Dictionary<PunTeams.Team, int> TeamScore = new Dictionary<PunTeams.Team, int>();
+
     public float RemainsMatchTime
     {
         get
@@ -159,15 +165,61 @@ public abstract class BaseNetworkGameRule : ScriptableObject
         }
     }
 
+    public virtual void OnScoreIncrease(BaseNetworkGameCharacter character, int increaseAmount)
+    {
+        if (!CharacterCollectedScore.ContainsKey(character.photonView.viewID))
+            CharacterCollectedScore[character.photonView.viewID] = increaseAmount;
+        else
+            CharacterCollectedScore[character.photonView.viewID] += increaseAmount;
+
+        if (IsTeamGameplay)
+        {
+            if (!TeamScore.ContainsKey(character.playerTeam))
+                TeamScore[character.playerTeam] = increaseAmount;
+            else
+                TeamScore[character.playerTeam] += increaseAmount;
+        }
+    }
+
+    public virtual void OnKillIncrease(BaseNetworkGameCharacter character, int increaseAmount)
+    {
+        if (!CharacterCollectedKill.ContainsKey(character.photonView.viewID))
+            CharacterCollectedKill[character.photonView.viewID] = increaseAmount;
+        else
+            CharacterCollectedKill[character.photonView.viewID] += increaseAmount;
+
+        if (IsTeamGameplay)
+        {
+            if (!TeamKill.ContainsKey(character.playerTeam))
+                TeamKill[character.playerTeam] = increaseAmount;
+            else
+                TeamKill[character.playerTeam] += increaseAmount;
+        }
+    }
+
     public virtual void OnUpdateCharacter(BaseNetworkGameCharacter character)
     {
-        if (HasOptionMatchScore && MatchScore > 0 && character.Score >= MatchScore)
+        int checkScore = character.Score;
+        int checkKill = character.KillCount;
+        if (IsTeamGameplay)
+        {
+            // Avoid team score, team kill null references
+            if (!TeamScore.ContainsKey(character.playerTeam))
+                TeamScore[character.playerTeam] = 0;
+            if (!TeamKill.ContainsKey(character.playerTeam))
+                TeamKill[character.playerTeam] = 0;
+            // Use team score / kill as checker
+            checkScore = TeamScore[character.playerTeam];
+            checkKill = TeamKill[character.playerTeam];
+        }
+
+        if (HasOptionMatchScore && MatchScore > 0 && checkScore >= MatchScore)
         {
             IsMatchEnded = true;
             EndMatch();
         }
 
-        if (HasOptionMatchKill && MatchKill > 0 && character.KillCount >= MatchKill)
+        if (HasOptionMatchKill && MatchKill > 0 && checkKill >= MatchKill)
         {
             IsMatchEnded = true;
             EndMatch();

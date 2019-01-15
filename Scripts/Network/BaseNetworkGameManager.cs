@@ -243,6 +243,18 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
         return true;
     }
 
+    public void OnScoreIncrease(BaseNetworkGameCharacter character, int increaseAmount)
+    {
+        if (gameRule != null)
+            gameRule.OnScoreIncrease(character, increaseAmount);
+    }
+
+    public void OnKillIncrease(BaseNetworkGameCharacter character, int increaseAmount)
+    {
+        if (gameRule != null)
+            gameRule.OnKillIncrease(character, increaseAmount);
+    }
+
     public void OnUpdateCharacter(BaseNetworkGameCharacter character)
     {
         if (gameRule != null)

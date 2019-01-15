@@ -31,6 +31,8 @@ public abstract class BaseNetworkGameCharacter : PunBehaviour, System.IComparabl
         {
             if (PhotonNetwork.isMasterClient && value != score)
             {
+                if (value > score && NetworkManager != null)
+                    NetworkManager.OnScoreIncrease(this, value - score);
                 _score = value;
                 photonView.RPC("RpcUpdateScore", PhotonTargets.Others, value);
             }
@@ -43,6 +45,8 @@ public abstract class BaseNetworkGameCharacter : PunBehaviour, System.IComparabl
         {
             if (PhotonNetwork.isMasterClient && value != killCount)
             {
+                if (value > killCount && NetworkManager != null)
+                    NetworkManager.OnKillIncrease(this, value - killCount);
                 _killCount = value;
                 photonView.RPC("RpcUpdateKillCount", PhotonTargets.Others, value);
             }
