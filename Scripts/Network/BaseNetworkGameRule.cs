@@ -112,6 +112,7 @@ public abstract class BaseNetworkGameRule : ScriptableObject
         if (!HasOptionBotCount)
             return;
         int addAmount = BotCount;
+        Bots.Clear();
         // Adjust bot count
         if (PhotonNetwork.room.PlayerCount + addAmount > PhotonNetwork.room.MaxPlayers)
             addAmount = PhotonNetwork.room.MaxPlayers - PhotonNetwork.room.PlayerCount;
