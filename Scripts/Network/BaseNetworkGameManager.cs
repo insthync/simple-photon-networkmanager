@@ -198,6 +198,7 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
             var ranking = new NetworkGameScore();
             ranking.viewId = character.photonView.viewID;
             ranking.playerName = character.playerName;
+            ranking.team = character.playerTeam;
             ranking.score = character.Score;
             ranking.killCount = character.KillCount;
             ranking.assistCount = character.AssistCount;
@@ -217,6 +218,7 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
         {
             objects.Add(sortedScore.viewId);
             objects.Add(sortedScore.playerName);
+            objects.Add(sortedScore.team);
             objects.Add(sortedScore.score);
             objects.Add(sortedScore.killCount);
             objects.Add(sortedScore.assistCount);
@@ -408,6 +410,7 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
             var score = new NetworkGameScore();
             score.viewId = (int)objects[j++];
             score.playerName = (string)objects[j++];
+            score.team = (PunTeams.Team)objects[j++];
             score.score = (int)objects[j++];
             score.killCount = (int)objects[j++];
             score.assistCount = (int)objects[j++];

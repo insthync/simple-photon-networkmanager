@@ -7,6 +7,10 @@ public abstract class BaseNetworkGameCharacter : PunBehaviour, System.IComparabl
 {
     public static BaseNetworkGameCharacter Local { get; private set; }
 
+    public GameObject[] noTeamObjects;
+    public GameObject[] teamAObjects;
+    public GameObject[] teamBObjects;
+
     public abstract bool IsDead { get; }
 
     protected int _score;
@@ -209,6 +213,19 @@ public abstract class BaseNetworkGameCharacter : PunBehaviour, System.IComparabl
     {
         if (NetworkManager != null)
             NetworkManager.OnUpdateCharacter(this);
+
+        foreach (var obj in noTeamObjects)
+        {
+            obj.SetActive(playerTeam == PunTeams.Team.none);
+        }
+        foreach (var obj in teamAObjects)
+        {
+            obj.SetActive(playerTeam == PunTeams.Team.red);
+        }
+        foreach (var obj in teamBObjects)
+        {
+            obj.SetActive(playerTeam == PunTeams.Team.blue);
+        }
     }
 
     public void ResetScore()
