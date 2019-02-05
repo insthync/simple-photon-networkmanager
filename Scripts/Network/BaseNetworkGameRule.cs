@@ -137,8 +137,11 @@ public abstract class BaseNetworkGameRule : ScriptableObject
         int addAmount = BotCount;
         Bots.Clear();
         // Adjust bot count
-        if (PhotonNetwork.room.PlayerCount + addAmount > PhotonNetwork.room.MaxPlayers)
-            addAmount = PhotonNetwork.room.MaxPlayers - PhotonNetwork.room.PlayerCount;
+        int maxPlayers = PhotonNetwork.room.MaxPlayers;
+        if (networkManager.isConnectOffline)
+            maxPlayers = networkManager.maxConnections;
+        if (PhotonNetwork.room.PlayerCount + addAmount > maxPlayers)
+            addAmount = maxPlayers - PhotonNetwork.room.PlayerCount;
         for (var i = 0; i < addAmount; ++i)
         {
             var character = NewBot();
@@ -154,12 +157,15 @@ public abstract class BaseNetworkGameRule : ScriptableObject
         if (!HasOptionBotCount)
             return;
         // Add bots if needed
-        if (Bots.Count < BotCount && PhotonNetwork.room.PlayerCount + Bots.Count < PhotonNetwork.room.MaxPlayers)
+        int maxPlayers = PhotonNetwork.room.MaxPlayers;
+        if (networkManager.isConnectOffline)
+            maxPlayers = networkManager.maxConnections;
+        if (Bots.Count < BotCount && PhotonNetwork.room.PlayerCount + Bots.Count < maxPlayers)
         {
             int addAmount = BotCount;
             // Adjust bot count
-            if (PhotonNetwork.room.PlayerCount + addAmount > PhotonNetwork.room.MaxPlayers)
-                addAmount = PhotonNetwork.room.MaxPlayers - PhotonNetwork.room.PlayerCount;
+            if (PhotonNetwork.room.PlayerCount + addAmount > maxPlayers)
+                addAmount = maxPlayers - PhotonNetwork.room.PlayerCount;
             for (var i = 0; i < addAmount; ++i)
             {
                 var character = NewBot();
@@ -170,7 +176,7 @@ public abstract class BaseNetworkGameRule : ScriptableObject
             }
         }
         // Remove bots if needed
-        while (PhotonNetwork.room.PlayerCount + Bots.Count > PhotonNetwork.room.MaxPlayers)
+        while (PhotonNetwork.room.PlayerCount + Bots.Count > maxPlayers)
         {
             int index = Bots.Count - 1;
             BaseNetworkGameCharacter botCharacter = Bots[index];

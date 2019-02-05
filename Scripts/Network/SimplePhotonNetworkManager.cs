@@ -132,6 +132,7 @@ public class SimplePhotonNetworkManager : PunBehaviour
         if (isConnectOffline)
         {
             PhotonNetwork.offlineMode = true;
+            StartGame();
             return;
         }
         SetupAndCreateRoom();
@@ -143,6 +144,7 @@ public class SimplePhotonNetworkManager : PunBehaviour
         if (isConnectOffline)
         {
             PhotonNetwork.offlineMode = true;
+            StartGame();
             return;
         }
         SetupAndCreateRoom();
