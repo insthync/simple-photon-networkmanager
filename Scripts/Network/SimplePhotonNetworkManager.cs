@@ -433,7 +433,7 @@ public class SimplePhotonNetworkManager : PunBehaviour
         yield return null;
         while (!PhotonNetwork.isMessageQueueRunning)
             yield return null;
-        if (scene.name == onlineScene.SceneName && PhotonNetwork.inRoom)
+        if ((offlineScene.SceneName == onlineScene.SceneName || offlineScene.SceneName != scene.name) && PhotonNetwork.inRoom)
         {
             // Send client ready to spawn player at master client
             OnOnlineSceneChanged();
