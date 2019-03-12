@@ -416,8 +416,9 @@ public class UIPhotonGameCreate : UIBase
         if (gameInstance != null)
         {
             gameInstance.maps = maps;
-            gameInstance.SetupMaps();
             maps = new MapSelection[0];
+            EditorUtility.SetDirty(gameInstance);
+            EditorUtility.SetDirty(this);
         }
     }
 }
