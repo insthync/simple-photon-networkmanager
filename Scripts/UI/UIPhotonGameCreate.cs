@@ -4,9 +4,6 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using Hashtable = ExitGames.Client.Photon.Hashtable;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 public class UIPhotonGameCreate : UIBase
 {
@@ -47,17 +44,6 @@ public class UIPhotonGameCreate : UIBase
         if (maps != null && maps.Length > 0)
             UpdateNetworkGameInstanceMaps();
     }
-
-#if UNITY_EDITOR
-    private void OnValidate()
-    {
-        if (maps != null && maps.Length > 0)
-        {
-            UpdateNetworkGameInstanceMaps();
-            EditorUtility.SetDirty(this);
-        }
-    }
-#endif
 
     public virtual void OnClickCreateGame()
     {
@@ -414,11 +400,6 @@ public class UIPhotonGameCreate : UIBase
     {
         BaseNetworkGameInstance gameInstance = FindObjectOfType<BaseNetworkGameInstance>();
         if (gameInstance != null)
-        {
             gameInstance.maps = maps;
-            maps = new MapSelection[0];
-            EditorUtility.SetDirty(gameInstance);
-            EditorUtility.SetDirty(this);
-        }
     }
 }
