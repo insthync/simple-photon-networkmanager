@@ -4,18 +4,12 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using Hashtable = ExitGames.Client.Photon.Hashtable;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 public class UIPhotonGameCreate : UIBase
 {
-    [System.Serializable]
-    public class MapSelection
-    {
-        public string mapName;
-        public SceneNameField scene;
-        public Sprite previewImage;
-        public BaseNetworkGameRule[] availableGameRules;
-    }
-
     public string defaultRoomName = "Let's play together !!";
     public byte maxPlayerCustomizable = 32;
     public InputField inputRoomName;
@@ -34,6 +28,8 @@ public class UIPhotonGameCreate : UIBase
     public InputField inputMatchScore;
     [Header("Maps")]
     public Image previewImage;
+    [HideInInspector]
+    // TODO: Will be deleted later
     public MapSelection[] maps;
     public Dropdown mapList;
     [Header("Game rules")]
@@ -45,6 +41,23 @@ public class UIPhotonGameCreate : UIBase
     protected BaseNetworkGameRule[] gameRules;
     protected bool dontApplyUpdates;
     protected bool isForUpdate;
+
+    private void Start()
+    {
+        if (maps != null && maps.Length > 0)
+            UpdateNetworkGameInstanceMaps();
+    }
+
+#if UNITY_EDITOR
+    private void OnValidate()
+    {
+        if (maps != null && maps.Length > 0)
+        {
+            UpdateNetworkGameInstanceMaps();
+            EditorUtility.SetDirty(this);
+        }
+    }
+#endif
 
     public virtual void OnClickCreateGame()
     {
@@ -253,7 +266,7 @@ public class UIPhotonGameCreate : UIBase
         if (mapList != null)
         {
             mapList.ClearOptions();
-            mapList.AddOptions(maps.Select(a => new Dropdown.OptionData(a.mapName)).ToList());
+            mapList.AddOptions(BaseNetworkGameInstance.Singleton.maps.Select(a => new Dropdown.OptionData(a.mapName)).ToList());
             mapList.onValueChanged.RemoveListener(OnMapListChange);
             mapList.onValueChanged.AddListener(OnMapListChange);
         }
@@ -323,9 +336,9 @@ public class UIPhotonGameCreate : UIBase
         object sceneNameObject;
         if (oldProperties.TryGetValue(SimplePhotonNetworkManager.CUSTOM_ROOM_SCENE_NAME, out sceneNameObject))
         {
-            for (int i = 0; i < maps.Length; ++i)
+            for (int i = 0; i < BaseNetworkGameInstance.Singleton.maps.Length; ++i)
             {
-                if (maps[i].scene.SceneName == (string)sceneNameObject)
+                if (BaseNetworkGameInstance.Singleton.maps[i].scene.SceneName == (string)sceneNameObject)
                 {
                     indexOfMap = i;
                     break;
@@ -387,12 +400,24 @@ public class UIPhotonGameCreate : UIBase
     public MapSelection GetSelectedMap()
     {
         var text = mapList.captionText.text;
-        return maps.FirstOrDefault(m => m.mapName == text);
+        return BaseNetworkGameInstance.Singleton.maps.FirstOrDefault(m => m.mapName == text);
     }
 
     public BaseNetworkGameRule GetSelectedGameRule()
     {
         var text = gameRuleList.captionText.text;
         return gameRules.FirstOrDefault(m => m.Title == text);
+    }
+
+    [ContextMenu("Update Network Game Instance Maps")]
+    public void UpdateNetworkGameInstanceMaps()
+    {
+        BaseNetworkGameInstance gameInstance = FindObjectOfType<BaseNetworkGameInstance>();
+        if (gameInstance != null)
+        {
+            gameInstance.maps = maps;
+            gameInstance.SetupMaps();
+            maps = new MapSelection[0];
+        }
     }
 }
