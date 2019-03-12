@@ -399,7 +399,7 @@ public class UIPhotonGameCreate : UIBase
     public void UpdateNetworkGameInstanceMaps()
     {
         BaseNetworkGameInstance gameInstance = FindObjectOfType<BaseNetworkGameInstance>();
-        if (gameInstance != null)
+        if (gameInstance != null && (gameInstance.maps == null || gameInstance.maps.Length == 0))
             gameInstance.maps = maps;
     }
 }
