@@ -178,7 +178,7 @@ public class SimplePhotonNetworkManager : PunBehaviour
         this.roomName = roomName;
         if (PhotonNetwork.inRoom && PhotonNetwork.isMasterClient)
         {
-            var customProperties = PhotonNetwork.room.CustomProperties;
+            Hashtable customProperties = new Hashtable();
             customProperties[CUSTOM_ROOM_ROOM_NAME] = roomName;
             PhotonNetwork.room.SetCustomProperties(customProperties);
         }
@@ -199,7 +199,7 @@ public class SimplePhotonNetworkManager : PunBehaviour
         this.onlineScene = onlineScene;
         if (PhotonNetwork.inRoom && PhotonNetwork.isMasterClient)
         {
-            var customProperties = PhotonNetwork.room.CustomProperties;
+            Hashtable customProperties = new Hashtable();
             customProperties[CUSTOM_ROOM_SCENE_NAME] = onlineScene.SceneName;
             PhotonNetwork.room.SetCustomProperties(customProperties);
         }
@@ -299,7 +299,7 @@ public class SimplePhotonNetworkManager : PunBehaviour
     {
         if (isLog) Debug.Log("OnCreatedRoom");
         // Set room information
-        var customProperties = PhotonNetwork.room.CustomProperties;
+        Hashtable customProperties = new Hashtable();
         customProperties[CUSTOM_ROOM_ROOM_NAME] = roomName;
         customProperties[CUSTOM_ROOM_PLAYER_ID] = PhotonNetwork.player.ID;
         customProperties[CUSTOM_ROOM_PLAYER_NAME] = PhotonNetwork.playerName;
@@ -338,7 +338,7 @@ public class SimplePhotonNetworkManager : PunBehaviour
             }
         }
         // Change room state to playing
-        var customProperties = PhotonNetwork.room.CustomProperties;
+        Hashtable customProperties = new Hashtable();
         customProperties[CUSTOM_ROOM_STATE] = (byte)RoomState.Playing;
         PhotonNetwork.room.SetCustomProperties(customProperties);
         // Setup start points for master client
@@ -357,7 +357,7 @@ public class SimplePhotonNetworkManager : PunBehaviour
             }
         }
         // Set player state to not ready
-        var customProperties = PhotonNetwork.player.CustomProperties;
+        Hashtable customProperties = new Hashtable();
         customProperties[CUSTOM_PLAYER_STATE] = (byte)PlayerState.NotReady;
         PhotonNetwork.player.SetCustomProperties(customProperties);
         if (onJoinedRoom != null)
@@ -388,7 +388,7 @@ public class SimplePhotonNetworkManager : PunBehaviour
 
     public override void OnMasterClientSwitched(PhotonPlayer newMasterClient)
     {
-        var customProperties = PhotonNetwork.room.CustomProperties;
+        Hashtable customProperties = new Hashtable();
         customProperties[CUSTOM_ROOM_PLAYER_ID] = newMasterClient.ID;
         customProperties[CUSTOM_ROOM_PLAYER_NAME] = newMasterClient.NickName;
         PhotonNetwork.room.SetCustomProperties(customProperties);
@@ -450,7 +450,7 @@ public class SimplePhotonNetworkManager : PunBehaviour
             return;
         }
 
-        Hashtable customProperties = PhotonNetwork.player.CustomProperties;
+        Hashtable customProperties = new Hashtable();
         PlayerState state = PlayerState.NotReady;
         object stateObj;
         if (customProperties.TryGetValue(CUSTOM_PLAYER_STATE, out stateObj))
@@ -473,7 +473,7 @@ public class SimplePhotonNetworkManager : PunBehaviour
             return;
         }
 
-        Hashtable customProperties = PhotonNetwork.player.CustomProperties;
+        Hashtable customProperties = new Hashtable();
         customProperties[CUSTOM_PLAYER_STATE] = (byte)playerState;
         PhotonNetwork.player.SetCustomProperties(customProperties);
     }
