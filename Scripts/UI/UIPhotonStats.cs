@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using Photon;
 
-public class UIPhotonStats : MonoBehaviour
+public class UIPhotonStats : UnityEngine.MonoBehaviour
 {
     public string formatPing = "{0} ms";
     public string formatCountOfPlayers = "<color=green>ONLINE :</color> {0}";
