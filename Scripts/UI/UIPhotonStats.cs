@@ -2,8 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using Photon.Pun;
-using Photon.Realtime;
+using Photon;
 
 public class UIPhotonStats : MonoBehaviour
 {
@@ -24,15 +23,15 @@ public class UIPhotonStats : MonoBehaviour
             textPing.text = string.Format(formatPing, PhotonNetwork.GetPing().ToString("N0"));
 
         if (textCountOfPlayers != null)
-            textCountOfPlayers.text = string.Format(formatCountOfPlayers, PhotonNetwork.CountOfPlayers.ToString("N0"));
+            textCountOfPlayers.text = string.Format(formatCountOfPlayers, PhotonNetwork.countOfPlayers.ToString("N0"));
 
         if (textCountOfPlayersInRoom != null)
-            textCountOfPlayersInRoom.text = string.Format(formatCountOfPlayersInRoom, PhotonNetwork.CountOfPlayersInRooms.ToString("N0"));
+            textCountOfPlayersInRoom.text = string.Format(formatCountOfPlayersInRoom, PhotonNetwork.countOfPlayersInRooms.ToString("N0"));
 
         if (textCountOfPlayersOnMaster != null)
-            textCountOfPlayersOnMaster.text = string.Format(formatCountOfPlayersOnMaster, PhotonNetwork.CountOfPlayersOnMaster.ToString("N0"));
+            textCountOfPlayersOnMaster.text = string.Format(formatCountOfPlayersOnMaster, PhotonNetwork.countOfPlayersOnMaster.ToString("N0"));
 
         if (textCountOfRooms != null)
-            textCountOfRooms.text = string.Format(formatCountOfRooms, PhotonNetwork.CountOfRooms.ToString("N0"));
+            textCountOfRooms.text = string.Format(formatCountOfRooms, PhotonNetwork.countOfRooms.ToString("N0"));
     }
 }
