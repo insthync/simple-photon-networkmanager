@@ -22,12 +22,13 @@ public class UIPhotonNetworkingEntry : MonoBehaviour
     public void SetData(NetworkDiscoveryData data)
     {
         Data = data;
+        
         if (textRoomName != null)
             textRoomName.text = string.IsNullOrEmpty(data.roomName) ? "Untitled" : data.roomName;
         if (textPlayerName != null)
             textPlayerName.text = data.playerName;
         if (textSceneName != null)
-            textSceneName.text = data.sceneName;
+            textSceneName.text = BaseNetworkGameInstance.GetMapNameByScene(data.sceneName);
         if (textPlayerCount != null)
             textPlayerCount.text = data.numPlayers + "/" + data.maxPlayers;
         if (textRoomState != null)

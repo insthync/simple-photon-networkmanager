@@ -80,13 +80,13 @@ public class UIPhotonWaitingRoom : UIBase
         var playerName = (string)customProperties[SimplePhotonNetworkManager.CUSTOM_ROOM_PLAYER_NAME];
         var sceneName = (string)customProperties[SimplePhotonNetworkManager.CUSTOM_ROOM_SCENE_NAME];
         var state = (byte)customProperties[SimplePhotonNetworkManager.CUSTOM_ROOM_STATE];
-
+        
         if (textRoomName != null)
             textRoomName.text = string.IsNullOrEmpty(roomName) ? "Untitled" : roomName;
         if (textPlayerName != null)
             textPlayerName.text = playerName;
         if (textSceneName != null)
-            textSceneName.text = sceneName;
+            textSceneName.text = BaseNetworkGameInstance.GetMapNameByScene(sceneName);
         if (textPlayerCount != null)
             textPlayerCount.text = room.PlayerCount + "/" + room.MaxPlayers;
         if (textRoomState != null)
