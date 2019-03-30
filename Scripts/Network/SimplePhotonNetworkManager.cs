@@ -92,6 +92,34 @@ public class SimplePhotonNetworkManager : PunBehaviour
         SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
+    protected void OnApplicationPause(bool pauseStatus)
+    {
+        if (pauseStatus)
+        {
+            if (PhotonNetwork.connectionState == ConnectionState.Connected && PhotonNetwork.inRoom && PhotonNetwork.isMasterClient)
+            {                                        
+                ChangeMasterClientifAvailble();
+                PhotonNetwork.SendOutgoingCommands();
+
+            }
+        }
+    }
+    
+    public void ChangeMasterClientifAvailble()
+    {
+        if (!PhotonNetwork.isMasterClient)
+        {
+            return;
+        }
+
+        if (PhotonNetwork.room.PlayerCount <= 1)
+        {
+            return;
+        }
+
+        PhotonNetwork.SetMasterClient(PhotonNetwork.masterClient.GetNext());
+    }
+
     public virtual void ConnectToMaster()
     {
         PhotonNetwork.automaticallySyncScene = true;
