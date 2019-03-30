@@ -328,12 +328,6 @@ public class SimplePhotonNetworkManager : PunBehaviour
 
     public virtual void LeaveRoom()
     {
-        if (isMatchMaking)
-        {
-            isMatchMaking = false;
-            if (onMatchMakingStopped != null)
-                onMatchMakingStopped.Invoke();
-        }
         if (isConnectOffline)
             PhotonNetwork.Disconnect();
         else
@@ -342,12 +336,6 @@ public class SimplePhotonNetworkManager : PunBehaviour
 
     public virtual void Disconnect()
     {
-        if (isMatchMaking)
-        {
-            isMatchMaking = false;
-            if (onMatchMakingStopped != null)
-                onMatchMakingStopped.Invoke();
-        }
         if (isConnectOffline && !PhotonNetwork.offlineMode)
         {
             if (onDisconnected != null)
@@ -376,6 +364,36 @@ public class SimplePhotonNetworkManager : PunBehaviour
         }
         if (onReceivedRoomListUpdate != null)
             onReceivedRoomListUpdate.Invoke(foundRooms);
+    }
+
+    public override void OnLeftRoom()
+    {
+        if (isLog) Debug.Log("OnLeftRoom");
+        if (!SceneManager.GetActiveScene().name.Equals(offlineScene.SceneName))
+            SceneManager.LoadScene(offlineScene.SceneName);
+        if (onLeftRoom != null)
+            onLeftRoom.Invoke();
+        if (isMatchMaking)
+        {
+            isMatchMaking = false;
+            if (onMatchMakingStopped != null)
+                onMatchMakingStopped.Invoke();
+        }
+    }
+
+    public override void OnDisconnectedFromPhoton()
+    {
+        if (isLog) Debug.Log("OnDisconnectedFromPhoton");
+        if (!SceneManager.GetActiveScene().name.Equals(offlineScene.SceneName))
+            SceneManager.LoadScene(offlineScene.SceneName);
+        if (onDisconnected != null)
+            onDisconnected.Invoke();
+        if (isMatchMaking)
+        {
+            isMatchMaking = false;
+            if (onMatchMakingStopped != null)
+                onMatchMakingStopped.Invoke();
+        }
     }
 
     public override void OnFailedToConnectToPhoton(DisconnectCause cause)
@@ -674,24 +692,6 @@ public class SimplePhotonNetworkManager : PunBehaviour
         position = point.position;
         rotation = point.rotation;
         return true;
-    }
-
-    public override void OnLeftRoom()
-    {
-        if (isLog) Debug.Log("OnLeftRoom");
-        if (!SceneManager.GetActiveScene().name.Equals(offlineScene.SceneName))
-            SceneManager.LoadScene(offlineScene.SceneName);
-        if (onLeftRoom != null)
-            onLeftRoom.Invoke();
-    }
-
-    public override void OnDisconnectedFromPhoton()
-    {
-        if (isLog) Debug.Log("OnDisconnectedFromPhoton");
-        if (!SceneManager.GetActiveScene().name.Equals(offlineScene.SceneName))
-            SceneManager.LoadScene(offlineScene.SceneName);
-        if (onDisconnected != null)
-            onDisconnected.Invoke();
     }
 
     public static RoomState GetRoomState()
