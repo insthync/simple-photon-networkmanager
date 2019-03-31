@@ -485,13 +485,11 @@ public class SimplePhotonNetworkManager : PunBehaviour
         {
             if (maxMatchMakingTime <= 0 || Time.unscaledTime - startMatchMakingTime < maxMatchMakingTime)
             {
-                Debug.LogError("It is not time to start game");
-                return;
-            }
-            else if (PhotonNetwork.room.PlayerCount < matchMakingConnections)
-            {
-                Debug.LogError("Player is not enough to start game");
-                return;
+                if (PhotonNetwork.room.PlayerCount < matchMakingConnections)
+                {
+                    Debug.LogError("Player is not enough to start game");
+                    return;
+                }
             }
         }
 
