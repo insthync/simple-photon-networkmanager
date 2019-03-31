@@ -365,6 +365,8 @@ public class SimplePhotonNetworkManager : PunBehaviour
         foreach (var room in rooms)
         {
             var customProperties = room.CustomProperties;
+            if (customProperties.Count == 0)
+                continue;
             var isMatchMaking = (bool)customProperties[CUSTOM_ROOM_MATCH_MAKE];
             if (!isMatchMaking)
             {
