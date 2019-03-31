@@ -67,6 +67,7 @@ public class SimplePhotonNetworkManager : PunBehaviour
     public bool isMatchMaking { get; protected set; }
     public float startMatchMakingTime { get; protected set; }
     private bool startGameOnRoomCreated;
+    private Hashtable cacheMatchMakingFilters;
 
     protected virtual void Awake()
     {
@@ -253,6 +254,7 @@ public class SimplePhotonNetworkManager : PunBehaviour
             filters = new Hashtable();
         filters[CUSTOM_ROOM_MATCH_MAKE] = true;
         PhotonNetwork.JoinRandomRoom(filters, 0);
+        cacheMatchMakingFilters = filters;
         startMatchMakingTime = Time.unscaledTime;
         if (onMatchMakingStarted != null)
             onMatchMakingStarted.Invoke();
@@ -279,6 +281,16 @@ public class SimplePhotonNetworkManager : PunBehaviour
     public void StopMatchMaking()
     {
         LeaveRoom();
+    }
+
+    private void OnStopMatchMaking()
+    {
+        if (isMatchMaking)
+        {
+            isMatchMaking = false;
+            if (onMatchMakingStopped != null)
+                onMatchMakingStopped.Invoke();
+        }
     }
 
     public void SetRoomName(string roomName)
@@ -375,21 +387,6 @@ public class SimplePhotonNetworkManager : PunBehaviour
             onReceivedRoomListUpdate.Invoke(foundRooms);
     }
 
-    public override void OnLeftRoom()
-    {
-        if (isLog) Debug.Log("OnLeftRoom");
-        if (!SceneManager.GetActiveScene().name.Equals(offlineScene.SceneName))
-            SceneManager.LoadScene(offlineScene.SceneName);
-        if (onLeftRoom != null)
-            onLeftRoom.Invoke();
-        if (isMatchMaking)
-        {
-            isMatchMaking = false;
-            if (onMatchMakingStopped != null)
-                onMatchMakingStopped.Invoke();
-        }
-    }
-
     public override void OnDisconnectedFromPhoton()
     {
         if (isLog) Debug.Log("OnDisconnectedFromPhoton");
@@ -397,12 +394,17 @@ public class SimplePhotonNetworkManager : PunBehaviour
             SceneManager.LoadScene(offlineScene.SceneName);
         if (onDisconnected != null)
             onDisconnected.Invoke();
-        if (isMatchMaking)
-        {
-            isMatchMaking = false;
-            if (onMatchMakingStopped != null)
-                onMatchMakingStopped.Invoke();
-        }
+        OnStopMatchMaking();
+    }
+
+    public override void OnLeftRoom()
+    {
+        if (isLog) Debug.Log("OnLeftRoom");
+        if (!SceneManager.GetActiveScene().name.Equals(offlineScene.SceneName))
+            SceneManager.LoadScene(offlineScene.SceneName);
+        if (onLeftRoom != null)
+            onLeftRoom.Invoke();
+        OnStopMatchMaking();
     }
 
     public override void OnFailedToConnectToPhoton(DisconnectCause cause)
@@ -410,6 +412,7 @@ public class SimplePhotonNetworkManager : PunBehaviour
         if (isLog) Debug.Log("OnFailedToConnectToPhoton " + cause.ToString());
         if (onConnectionError != null)
             onConnectionError(cause);
+        OnStopMatchMaking();
     }
 
     public override void OnConnectionFail(DisconnectCause cause)
@@ -417,6 +420,7 @@ public class SimplePhotonNetworkManager : PunBehaviour
         if (isLog) Debug.Log("OnConnectionFail " + cause.ToString());
         if (onConnectionError != null)
             onConnectionError(cause);
+        OnStopMatchMaking();
     }
 
     public override void OnPhotonCreateRoomFailed(object[] codeAndMsg)
@@ -424,13 +428,21 @@ public class SimplePhotonNetworkManager : PunBehaviour
         if (isLog) Debug.Log("OnPhotonCreateRoomFailed " + codeAndMsg[0].ToString() + " " + codeAndMsg[1].ToString());
         if (onRoomConnectError != null)
             onRoomConnectError(codeAndMsg);
+        OnStopMatchMaking();
     }
 
     public override void OnPhotonRandomJoinFailed(object[] codeAndMsg)
     {
         if (isLog) Debug.Log("OnPhotonRandomJoinFailed " + codeAndMsg[0].ToString() + " " + codeAndMsg[1].ToString());
-        if (onRoomConnectError != null)
-            onRoomConnectError(codeAndMsg);
+        if (isMatchMaking)
+        {
+            SetupAndCreateMatchMakingRoom();
+        }
+        else
+        {
+            if (onRoomConnectError != null)
+                onRoomConnectError.Invoke(codeAndMsg);
+        }
     }
 
     public override void OnJoinedLobby()
@@ -476,8 +488,7 @@ public class SimplePhotonNetworkManager : PunBehaviour
                 Debug.LogError("It is not time to start game");
                 return;
             }
-
-            if (PhotonNetwork.room.PlayerCount < matchMakingConnections)
+            else if (PhotonNetwork.room.PlayerCount < matchMakingConnections)
             {
                 Debug.LogError("Player is not enough to start game");
                 return;
@@ -520,13 +531,11 @@ public class SimplePhotonNetworkManager : PunBehaviour
             if (isMatchMaking)
             {
                 // Set match making state to true for join random filter later
-                Hashtable roomCustomProperties = new Hashtable();
-                roomCustomProperties[CUSTOM_ROOM_MATCH_MAKE] = true;
-                PhotonNetwork.room.SetCustomProperties(roomCustomProperties);
+                PhotonNetwork.room.SetCustomProperties(cacheMatchMakingFilters);
             }
         }
-        // Set player state to not ready
-        Hashtable customProperties = new Hashtable();
+       // Set player state to not ready
+       Hashtable customProperties = new Hashtable();
         customProperties[CUSTOM_PLAYER_STATE] = (byte)PlayerState.NotReady;
         PhotonNetwork.player.SetCustomProperties(customProperties);
         if (onJoinedRoom != null)
