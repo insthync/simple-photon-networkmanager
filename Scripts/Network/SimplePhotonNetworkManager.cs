@@ -59,6 +59,7 @@ public class SimplePhotonNetworkManager : PunBehaviour
     public int sendRateOnSerialize = 10;
     public byte maxConnections = 10;
     public byte matchMakingConnections = 2;
+    public float maxMatchMakingTime = 60f;
     public string roomName;
     public AsyncOperation LoadSceneAsyncOp { get; protected set; }
     public SimplePhotonStartPoint[] StartPoints { get; protected set; }
@@ -85,6 +86,14 @@ public class SimplePhotonNetworkManager : PunBehaviour
             view = gameObject.AddComponent<PhotonView>();
         view.viewID = UNIQUE_VIEW_ID;
         SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    protected virtual void Update()
+    {
+        if (isMatchMaking && maxMatchMakingTime > 0 && Time.unscaledTime - startMatchMakingTime >= maxMatchMakingTime)
+        {
+            StartGame();
+        }
     }
 
     protected virtual void OnDestroy()
@@ -460,10 +469,19 @@ public class SimplePhotonNetworkManager : PunBehaviour
             return;
         }
 
-        if (isMatchMaking && PhotonNetwork.room.PlayerCount < matchMakingConnections)
+        if (isMatchMaking)
         {
-            Debug.LogError("Player is not enough to start game");
-            return;
+            if (maxMatchMakingTime <= 0 || Time.unscaledTime - startMatchMakingTime < maxMatchMakingTime)
+            {
+                Debug.LogError("It is not time to start game");
+                return;
+            }
+
+            if (PhotonNetwork.room.PlayerCount < matchMakingConnections)
+            {
+                Debug.LogError("Player is not enough to start game");
+                return;
+            }
         }
 
         isMatchMaking = false;
@@ -597,6 +615,7 @@ public class SimplePhotonNetworkManager : PunBehaviour
             yield return null;
         if ((offlineScene.SceneName == onlineScene.SceneName || offlineScene.SceneName != scene.name) && PhotonNetwork.inRoom)
         {
+            isMatchMaking = false;
             // Send client ready to spawn player at master client
             OnOnlineSceneChanged();
             photonView.RPC("RpcPlayerSceneChanged", PhotonTargets.MasterClient, PhotonNetwork.player.ID);
