@@ -642,7 +642,7 @@ public class SimplePhotonNetworkManager : PunBehaviour
             isMatchMaking = false;
             // Send client ready to spawn player at master client
             OnOnlineSceneChanged();
-            photonView.RPC("RpcPlayerSceneChanged", PhotonTargets.MasterClient, PhotonNetwork.player.ID);
+            photonView.RPC("RpcPlayerSceneChanged", PhotonTargets.MasterClient, PhotonNetwork.player.UserId);
         }
     }
 
@@ -682,12 +682,12 @@ public class SimplePhotonNetworkManager : PunBehaviour
         PhotonNetwork.player.SetCustomProperties(customProperties);
     }
 
-    public PhotonPlayer GetPlayerById(int id)
+    public PhotonPlayer GetPlayerById(string id)
     {
         PhotonPlayer foundPlayer = null;
         foreach (var player in PhotonNetwork.playerList)
         {
-            if (player.ID == id)
+            if (player.UserId.Equals(id))
             {
                 foundPlayer = player;
                 break;
@@ -718,7 +718,7 @@ public class SimplePhotonNetworkManager : PunBehaviour
     }
 
     [PunRPC]
-    protected virtual void RpcPlayerSceneChanged(int id)
+    protected virtual void RpcPlayerSceneChanged(string id)
     {
         PhotonPlayer foundPlayer = GetPlayerById(id);
         if (foundPlayer != null)

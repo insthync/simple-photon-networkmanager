@@ -41,12 +41,12 @@ public class UIPhotonWaitingPlayer : MonoBehaviour
 
         foreach (var hostObject in hostObjects)
         {
-            hostObject.SetActive(room.HostPlayerID.Equals(data.ID.ToString()));
+            hostObject.SetActive(room.HostPlayerID.Equals(data.UserId));
         }
 
         foreach (var owningObject in owningObjects)
         {
-            owningObject.SetActive(PhotonNetwork.player.ID == data.ID);
+            owningObject.SetActive(PhotonNetwork.player.UserId.Equals(data.UserId));
         }
     }
 }

@@ -396,7 +396,7 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
 
     public void ChangePlayerTeam()
     {
-        photonView.RPC("RpcChangePlayerTeam", PhotonTargets.MasterClient, PhotonNetwork.player.ID);
+        photonView.RPC("RpcChangePlayerTeam", PhotonTargets.MasterClient, PhotonNetwork.player.UserId);
     }
 
     [PunRPC]
@@ -433,7 +433,7 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
     }
 
     [PunRPC]
-    protected void RpcChangePlayerTeam(int id)
+    protected void RpcChangePlayerTeam(string id)
     {
         PhotonPlayer foundPlayer = GetPlayerById(id);
         if (foundPlayer != null)

@@ -33,10 +33,10 @@ public class UIPhotonWaitingRoom : UIBase
     public int canStartWhenPlayersReadyAtLeast = 0;
     public string HostPlayerID { get; private set; }
 
-    private readonly Dictionary<int, PhotonPlayer> players = new Dictionary<int, PhotonPlayer>();
-    private readonly Dictionary<int, UIPhotonWaitingPlayer> waitingPlayers = new Dictionary<int, UIPhotonWaitingPlayer>();
-    private readonly Dictionary<int, UIPhotonWaitingPlayer> waitingTeamAPlayers = new Dictionary<int, UIPhotonWaitingPlayer>();
-    private readonly Dictionary<int, UIPhotonWaitingPlayer> waitingTeamBPlayers = new Dictionary<int, UIPhotonWaitingPlayer>();
+    private readonly Dictionary<string, PhotonPlayer> players = new Dictionary<string, PhotonPlayer>();
+    private readonly Dictionary<string, UIPhotonWaitingPlayer> waitingPlayers = new Dictionary<string, UIPhotonWaitingPlayer>();
+    private readonly Dictionary<string, UIPhotonWaitingPlayer> waitingTeamAPlayers = new Dictionary<string, UIPhotonWaitingPlayer>();
+    private readonly Dictionary<string, UIPhotonWaitingPlayer> waitingTeamBPlayers = new Dictionary<string, UIPhotonWaitingPlayer>();
 
     public override void Show()
     {
@@ -201,17 +201,17 @@ public class UIPhotonWaitingRoom : UIBase
         }
         foreach (var hostObject in hostObjects)
         {
-            hostObject.SetActive(HostPlayerID.Equals(PhotonNetwork.player.ID.ToString()));
+            hostObject.SetActive(HostPlayerID.Equals(PhotonNetwork.player.UserId));
         }
         foreach (var nonHostObject in nonHostObjects)
         {
-            nonHostObject.SetActive(!HostPlayerID.Equals(PhotonNetwork.player.ID.ToString()));
+            nonHostObject.SetActive(!HostPlayerID.Equals(PhotonNetwork.player.UserId));
         }
         if (PhotonNetwork.player.IsMasterClient && hostAlwaysReady)
             SimplePhotonNetworkManager.Singleton.SetPlayerState(PlayerState.Ready);
     }
 
-    private void DestroyPlayerUI(int id)
+    private void DestroyPlayerUI(string id)
     {
         if (waitingPlayers.ContainsKey(id))
         {
@@ -233,12 +233,12 @@ public class UIPhotonWaitingRoom : UIBase
 
     private void CreatePlayerUI(PhotonPlayer player)
     {
-        int key = player.ID;
+        string key = player.UserId;
         DestroyPlayerUI(key);
 
         PunTeams.Team team = player.GetTeam();
         Transform container = waitingPlayerListContainer;
-        Dictionary<int, UIPhotonWaitingPlayer> uiDict = waitingPlayers;
+        Dictionary<string, UIPhotonWaitingPlayer> uiDict = waitingPlayers;
         switch (team)
         {
             case PunTeams.Team.red:
@@ -255,13 +255,13 @@ public class UIPhotonWaitingRoom : UIBase
         newEntry.gameObject.SetActive(true);
         uiDict.Add(key, newEntry);
 
-        players[player.ID] = player;
+        players[player.UserId] = player;
     }
 
     private void UpdatePlayerUI(PhotonPlayer player)
     {
         PunTeams.Team team = player.GetTeam();
-        if (waitingPlayers.ContainsKey(player.ID))
+        if (waitingPlayers.ContainsKey(player.UserId))
         {
             if (team != PunTeams.Team.none)
             {
@@ -269,9 +269,9 @@ public class UIPhotonWaitingRoom : UIBase
                 CreatePlayerUI(player);
                 return;
             }
-            waitingPlayers[player.ID].SetData(this, player);
+            waitingPlayers[player.UserId].SetData(this, player);
         }
-        if (waitingTeamAPlayers.ContainsKey(player.ID))
+        if (waitingTeamAPlayers.ContainsKey(player.UserId))
         {
             if (team != PunTeams.Team.red)
             {
@@ -279,9 +279,9 @@ public class UIPhotonWaitingRoom : UIBase
                 CreatePlayerUI(player);
                 return;
             }
-            waitingTeamAPlayers[player.ID].SetData(this, player);
+            waitingTeamAPlayers[player.UserId].SetData(this, player);
         }
-        if (waitingTeamBPlayers.ContainsKey(player.ID))
+        if (waitingTeamBPlayers.ContainsKey(player.UserId))
         {
             if (team != PunTeams.Team.blue)
             {
@@ -289,7 +289,7 @@ public class UIPhotonWaitingRoom : UIBase
                 CreatePlayerUI(player);
                 return;
             }
-            waitingTeamBPlayers[player.ID].SetData(this, player);
+            waitingTeamBPlayers[player.UserId].SetData(this, player);
         }
     }
 
@@ -302,12 +302,12 @@ public class UIPhotonWaitingRoom : UIBase
     private void OnPlayerDisconnectedCallback(PhotonPlayer player)
     {
         UpdateRoomData();
-        DestroyPlayerUI(player.ID);
+        DestroyPlayerUI(player.UserId);
     }
 
     private void OnPlayerPropertiesChangedCallback(PhotonPlayer player, Hashtable props)
     {
-        if (players.ContainsKey(player.ID))
+        if (players.ContainsKey(player.UserId))
             UpdatePlayerUI(player);
         else
             CreatePlayerUI(player);
