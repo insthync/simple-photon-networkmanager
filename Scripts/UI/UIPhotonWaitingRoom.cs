@@ -31,7 +31,7 @@ public class UIPhotonWaitingRoom : UIBase
     public bool hostAlwaysReady = true;
     public int autoStartWhenPlayersReadyAtLeast = 0;
     public int canStartWhenPlayersReadyAtLeast = 0;
-    public int HostPlayerID { get; private set; }
+    public string HostPlayerID { get; private set; }
 
     private readonly Dictionary<int, PhotonPlayer> players = new Dictionary<int, PhotonPlayer>();
     private readonly Dictionary<int, UIPhotonWaitingPlayer> waitingPlayers = new Dictionary<int, UIPhotonWaitingPlayer>();
@@ -76,7 +76,7 @@ public class UIPhotonWaitingRoom : UIBase
         var room = PhotonNetwork.room;
         var customProperties = room.CustomProperties;
         var roomName = (string)customProperties[SimplePhotonNetworkManager.CUSTOM_ROOM_ROOM_NAME];
-        var playerId = (int)customProperties[SimplePhotonNetworkManager.CUSTOM_ROOM_PLAYER_ID];
+        var playerId = (string)customProperties[SimplePhotonNetworkManager.CUSTOM_ROOM_PLAYER_ID];
         var playerName = (string)customProperties[SimplePhotonNetworkManager.CUSTOM_ROOM_PLAYER_NAME];
         var sceneName = (string)customProperties[SimplePhotonNetworkManager.CUSTOM_ROOM_SCENE_NAME];
         var state = (byte)customProperties[SimplePhotonNetworkManager.CUSTOM_ROOM_STATE];
@@ -201,11 +201,11 @@ public class UIPhotonWaitingRoom : UIBase
         }
         foreach (var hostObject in hostObjects)
         {
-            hostObject.SetActive(HostPlayerID == PhotonNetwork.player.ID);
+            hostObject.SetActive(HostPlayerID.Equals(PhotonNetwork.player.ID.ToString()));
         }
         foreach (var nonHostObject in nonHostObjects)
         {
-            nonHostObject.SetActive(HostPlayerID != PhotonNetwork.player.ID);
+            nonHostObject.SetActive(!HostPlayerID.Equals(PhotonNetwork.player.ID.ToString()));
         }
         if (PhotonNetwork.player.IsMasterClient && hostAlwaysReady)
             SimplePhotonNetworkManager.Singleton.SetPlayerState(PlayerState.Ready);
@@ -324,8 +324,8 @@ public class UIPhotonWaitingRoom : UIBase
     {
         var room = PhotonNetwork.room;
         var customProperties = room.CustomProperties;
-        var playerId = (int)customProperties[SimplePhotonNetworkManager.CUSTOM_ROOM_PLAYER_ID];
-        if (playerId != HostPlayerID)
+        var playerId = (string)customProperties[SimplePhotonNetworkManager.CUSTOM_ROOM_PLAYER_ID];
+        if (!playerId.Equals(HostPlayerID))
         {
             // Update with `OnJoinedRoomCallback` to refresh all data
             OnJoinedRoomCallback();
