@@ -17,8 +17,12 @@ public class UIPhotonEnterPassword : UIBase
     {
         var password = inputPassword.text;
         if (password.Equals(Data.roomPassword))
+        {
+            Hide();
             SimplePhotonNetworkManager.Singleton.JoinRoom(Data.name);
-        else if (onEnterWrongPassword != null)
+            return;
+        }
+        if (onEnterWrongPassword != null)
             onEnterWrongPassword.Invoke();
     }
 
