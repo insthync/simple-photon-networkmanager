@@ -17,6 +17,9 @@ public class UIPhotonNetworkingEntry : MonoBehaviour
     public Text textMatchTime;
     public Text textMatchKill;
     public Text textMatchScore;
+    public GameObject hasPasswordObject;
+    [System.NonSerialized]
+    public UIPhotonNetworking uiPhotonNetworking;
     public NetworkDiscoveryData Data { get; private set; }
 
     public void SetData(NetworkDiscoveryData data)
@@ -72,11 +75,18 @@ public class UIPhotonNetworkingEntry : MonoBehaviour
             textMatchScore.text = data.matchScore.ToString("N0");
             textMatchScore.gameObject.SetActive(gameRule != null && gameRule.HasOptionMatchScore);
         }
+
+        if (hasPasswordObject != null)
+            hasPasswordObject.SetActive(!string.IsNullOrEmpty(data.roomPassword));
     }
 
     public virtual void OnClickJoinButton()
     {
-        var networkManager = SimplePhotonNetworkManager.Singleton;
-        networkManager.JoinRoom(Data.name);
+        if (!string.IsNullOrEmpty(Data.roomPassword))
+        {
+            uiPhotonNetworking.ShowEnterPasswordDialog(Data);
+            return;
+        }
+        SimplePhotonNetworkManager.Singleton.JoinRoom(Data.name);
     }
 }

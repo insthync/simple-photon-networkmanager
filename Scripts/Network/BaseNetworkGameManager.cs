@@ -111,7 +111,7 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
             var discoveryData = new NetworkDiscoveryData();
             discoveryData.name = room.Name;
             discoveryData.roomName = (string)customProperties[CUSTOM_ROOM_ROOM_NAME];
-            discoveryData.playerId = (int)customProperties[CUSTOM_ROOM_PLAYER_ID];
+            discoveryData.playerId = (string)customProperties[CUSTOM_ROOM_PLAYER_ID];
             discoveryData.playerName = (string)customProperties[CUSTOM_ROOM_PLAYER_NAME];
             discoveryData.sceneName = (string)customProperties[CUSTOM_ROOM_SCENE_NAME];
             discoveryData.state = (byte)customProperties[CUSTOM_ROOM_STATE];

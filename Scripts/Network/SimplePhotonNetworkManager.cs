@@ -21,6 +21,7 @@ public class SimplePhotonNetworkManager : PunBehaviour
 
     public const int UNIQUE_VIEW_ID = 999;
     public const string CUSTOM_ROOM_ROOM_NAME = "R";
+    public const string CUSTOM_ROOM_ROOM_PASSWORD = "RP";
     public const string CUSTOM_ROOM_PLAYER_ID = "Id";
     public const string CUSTOM_ROOM_PLAYER_NAME = "P";
     public const string CUSTOM_ROOM_SCENE_NAME = "S";
@@ -61,6 +62,7 @@ public class SimplePhotonNetworkManager : PunBehaviour
     public byte matchMakingConnections = 2;
     public float maxMatchMakingTime = 60f;
     public string roomName;
+    public string roomPassword;
     public AsyncOperation LoadSceneAsyncOp { get; protected set; }
     public SimplePhotonStartPoint[] StartPoints { get; protected set; }
     public bool isConnectOffline { get; protected set; }
@@ -223,6 +225,7 @@ public class SimplePhotonNetworkManager : PunBehaviour
         return new string[]
         {
             CUSTOM_ROOM_ROOM_NAME,
+            CUSTOM_ROOM_ROOM_PASSWORD,
             CUSTOM_ROOM_PLAYER_ID,
             CUSTOM_ROOM_PLAYER_NAME,
             CUSTOM_ROOM_SCENE_NAME,
@@ -293,6 +296,18 @@ public class SimplePhotonNetworkManager : PunBehaviour
         {
             Hashtable customProperties = new Hashtable();
             customProperties[CUSTOM_ROOM_ROOM_NAME] = roomName;
+            PhotonNetwork.room.SetCustomProperties(customProperties);
+        }
+    }
+
+    public void SetRoomPassword(string roomPassword)
+    {
+        // If room not created, set data to field to use later
+        this.roomPassword = roomPassword;
+        if (PhotonNetwork.inRoom && PhotonNetwork.isMasterClient)
+        {
+            Hashtable customProperties = new Hashtable();
+            customProperties[CUSTOM_ROOM_ROOM_PASSWORD] = roomPassword;
             PhotonNetwork.room.SetCustomProperties(customProperties);
         }
     }
@@ -373,6 +388,7 @@ public class SimplePhotonNetworkManager : PunBehaviour
                 var discoveryData = new NetworkDiscoveryData();
                 discoveryData.name = room.Name;
                 discoveryData.roomName = (string)customProperties[CUSTOM_ROOM_ROOM_NAME];
+                discoveryData.roomPassword = (string)customProperties[CUSTOM_ROOM_ROOM_PASSWORD];
                 discoveryData.playerId = (string)customProperties[CUSTOM_ROOM_PLAYER_ID];
                 discoveryData.playerName = (string)customProperties[CUSTOM_ROOM_PLAYER_NAME];
                 discoveryData.sceneName = (string)customProperties[CUSTOM_ROOM_SCENE_NAME];
@@ -457,6 +473,7 @@ public class SimplePhotonNetworkManager : PunBehaviour
         // Set room information
         Hashtable customProperties = new Hashtable();
         customProperties[CUSTOM_ROOM_ROOM_NAME] = roomName;
+        customProperties[CUSTOM_ROOM_ROOM_PASSWORD] = roomPassword;
         customProperties[CUSTOM_ROOM_PLAYER_ID] = PhotonNetwork.player.UserId;
         customProperties[CUSTOM_ROOM_PLAYER_NAME] = PhotonNetwork.playerName;
         customProperties[CUSTOM_ROOM_SCENE_NAME] = onlineScene.SceneName;

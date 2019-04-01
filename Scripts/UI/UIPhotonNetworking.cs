@@ -17,6 +17,7 @@ public class UIPhotonNetworking : UIBase
     public UIBase uiConnected;
     public UIEnterNetworkAddress uiEnterNetworkAddress;
     public UIPhotonWaitingRoom uiWaitingRoom;
+    public UIPhotonEnterPassword uiEnterPassword;
     public UIPhotonNetworkingEntry entryPrefab;
     public Transform gameListContainer;
     private readonly Dictionary<string, UIPhotonNetworkingEntry> entries = new Dictionary<string, UIPhotonNetworkingEntry>();
@@ -81,6 +82,7 @@ public class UIPhotonNetworking : UIBase
             if (!entries.ContainsKey(key))
             {
                 var newEntry = Instantiate(entryPrefab, gameListContainer);
+                newEntry.uiPhotonNetworking = this;
                 newEntry.SetData(data);
                 newEntry.gameObject.SetActive(true);
                 entries.Add(key, newEntry);
@@ -167,5 +169,17 @@ public class UIPhotonNetworking : UIBase
     public virtual void OnClickCreateWaitingRoom()
     {
         SimplePhotonNetworkManager.Singleton.CreateWaitingRoom();
+    }
+
+    public void ShowEnterPasswordDialog(NetworkDiscoveryData data)
+    {
+        if (uiEnterPassword == null)
+        {
+            Debug.LogError("[UIPhotonNetworking] uiEnterPassword is empty");
+            return;
+        }
+        uiEnterPassword.uiPhotonNetworking = this;
+        uiEnterPassword.SetData(data);
+        uiEnterPassword.Show();
     }
 }

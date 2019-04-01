@@ -10,6 +10,7 @@ public class UIPhotonGameCreate : UIBase
     public string defaultRoomName = "Let's play together !!";
     public byte maxPlayerCustomizable = 32;
     public InputField inputRoomName;
+    public InputField inputRoomPassword;
     public InputField inputMaxPlayer;
     [Header("Match Bot Count")]
     public GameObject containerBotCount;
@@ -90,6 +91,10 @@ public class UIPhotonGameCreate : UIBase
         // Set room name
         string roomName = inputRoomName == null ? defaultRoomName : inputRoomName.text;
         networkGameManager.SetRoomName(roomName);
+
+        // Set room password
+        string roomPassword = inputRoomPassword == null ? string.Empty : inputRoomPassword.text;
+        networkGameManager.SetRoomPassword(roomPassword);
 
         // Set max player
         string maxPlayerString = inputMaxPlayer == null ? "0" : inputMaxPlayer.text;
@@ -194,12 +199,6 @@ public class UIPhotonGameCreate : UIBase
         }
     }
 
-    public void OnRoomNameChanged(string value)
-    {
-        if (dontApplyUpdates)
-            return;
-    }
-
     public void OnMaxPlayerChanged(string value)
     {
         if (dontApplyUpdates)
@@ -258,12 +257,10 @@ public class UIPhotonGameCreate : UIBase
         }
 
         if (inputRoomName != null)
-        {
             inputRoomName.text = defaultRoomName;
-            inputRoomName.onEndEdit.RemoveListener(OnRoomNameChanged);
-            inputRoomName.onEndEdit.AddListener(OnRoomNameChanged);
-            OnRoomNameChanged(defaultRoomName);
-        }
+
+        if (inputRoomPassword != null)
+            inputRoomPassword.text = string.Empty;
 
         if (inputMaxPlayer != null)
         {
@@ -313,6 +310,10 @@ public class UIPhotonGameCreate : UIBase
         // Set data by customized data
         if (inputRoomName != null)
             inputRoomName.text = (string)oldProperties[SimplePhotonNetworkManager.CUSTOM_ROOM_ROOM_NAME];
+
+        // Set data by customized data
+        if (inputRoomPassword != null)
+            inputRoomPassword.text = (string)oldProperties[SimplePhotonNetworkManager.CUSTOM_ROOM_ROOM_PASSWORD];
 
         // Set data by customized data
         if (inputMaxPlayer != null)
