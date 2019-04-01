@@ -109,14 +109,14 @@ public class SimplePhotonNetworkManager : PunBehaviour
         if (pauseStatus)
         {
             if (PhotonNetwork.connectionState == ConnectionState.Connected && PhotonNetwork.inRoom && PhotonNetwork.isMasterClient)
-            {                                        
+            {
                 ChangeMasterClientifAvailble();
                 PhotonNetwork.SendOutgoingCommands();
 
             }
         }
     }
-    
+
     public void ChangeMasterClientifAvailble()
     {
         if (!PhotonNetwork.isMasterClient)
@@ -478,7 +478,7 @@ public class SimplePhotonNetworkManager : PunBehaviour
         customProperties[CUSTOM_ROOM_PLAYER_NAME] = PhotonNetwork.playerName;
         customProperties[CUSTOM_ROOM_SCENE_NAME] = onlineScene.SceneName;
         customProperties[CUSTOM_ROOM_MATCH_MAKE] = false;
-        customProperties[CUSTOM_ROOM_STATE] = (byte) RoomState.Waiting;
+        customProperties[CUSTOM_ROOM_STATE] = (byte)RoomState.Waiting;
         PhotonNetwork.room.SetCustomProperties(customProperties);
         if (startGameOnRoomCreated)
             StartGame();
@@ -549,8 +549,8 @@ public class SimplePhotonNetworkManager : PunBehaviour
                 PhotonNetwork.room.SetCustomProperties(cacheMatchMakingFilters);
             }
         }
-       // Set player state to not ready
-       Hashtable customProperties = new Hashtable();
+        // Set player state to not ready
+        Hashtable customProperties = new Hashtable();
         customProperties[CUSTOM_PLAYER_STATE] = (byte)PlayerState.NotReady;
         PhotonNetwork.player.SetCustomProperties(customProperties);
         if (onJoinedRoom != null)
