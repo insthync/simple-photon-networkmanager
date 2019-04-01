@@ -91,9 +91,11 @@ public abstract class BaseNetworkGameManager : SimplePhotonNetworkManager
         return new string[]
         {
             CUSTOM_ROOM_ROOM_NAME,
+            CUSTOM_ROOM_ROOM_PASSWORD,
             CUSTOM_ROOM_PLAYER_ID,
             CUSTOM_ROOM_PLAYER_NAME,
             CUSTOM_ROOM_SCENE_NAME,
+            CUSTOM_ROOM_MATCH_MAKE,
             CUSTOM_ROOM_STATE,
             CUSTOM_ROOM_GAME_RULE,
             CUSTOM_ROOM_GAME_RULE_BOT_COUNT,
