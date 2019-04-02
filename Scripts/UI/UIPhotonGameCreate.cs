@@ -5,6 +5,14 @@ using UnityEngine;
 using UnityEngine.UI;
 using Hashtable = ExitGames.Client.Photon.Hashtable;
 
+[System.Serializable]
+public class FixMapSelection
+{
+    public SceneNameField scene;
+    [Tooltip("Set its size to 0 if you don't want to fix game rules")]
+    public BaseNetworkGameRule[] availableGameRules;
+}
+
 public class UIPhotonGameCreate : UIBase
 {
     public string defaultRoomName = "Let's play together !!";
@@ -26,16 +34,18 @@ public class UIPhotonGameCreate : UIBase
     public InputField inputMatchScore;
     [Header("Maps")]
     public Image previewImage;
+    public Dropdown mapList;
+    public FixMapSelection[] fixMaps;
     [HideInInspector]
     // TODO: Will be deleted later
     public MapSelection[] maps;
-    public Dropdown mapList;
     [Header("Game rules")]
     public Dropdown gameRuleList;
     [Header("Objects for difference kind of dialog usage")]
     public GameObject[] createUiObjects;
     public GameObject[] updateUiObjects;
 
+    protected readonly List<MapSelection> fixMapSelections = new List<MapSelection>();
     protected BaseNetworkGameRule[] gameRules;
     protected bool dontApplyUpdates;
     protected bool isForUpdate;
@@ -121,18 +131,18 @@ public class UIPhotonGameCreate : UIBase
         if (gameRuleList != null)
             gameRuleList.ClearOptions();
 
-        var selected = GetSelectedMap();
+        var selectedMap = GetSelectedMap();
 
-        if (selected == null)
+        if (selectedMap == null)
         {
             Debug.LogError("Invalid map selection");
             return;
         }
 
-        SimplePhotonNetworkManager.Singleton.SetRoomOnlineScene(selected.scene);
+        SimplePhotonNetworkManager.Singleton.SetRoomOnlineScene(selectedMap.scene);
 
-        previewImage.sprite = selected.previewImage;
-        gameRules = selected.availableGameRules;
+        previewImage.sprite = selectedMap.previewImage;
+        gameRules = selectedMap.availableGameRules;
 
         if (gameRuleList != null)
         {
@@ -251,7 +261,16 @@ public class UIPhotonGameCreate : UIBase
         if (mapList != null)
         {
             mapList.ClearOptions();
-            mapList.AddOptions(BaseNetworkGameInstance.Singleton.maps.Select(a => new Dropdown.OptionData(a.mapName)).ToList());
+            var mapListOptions = new List<Dropdown.OptionData>();
+            if (fixMapSelections.Count > 0)
+            {
+                mapListOptions = fixMapSelections.Select(a => new Dropdown.OptionData(a.mapName)).ToList();
+            }
+            else
+            {
+                mapListOptions = BaseNetworkGameInstance.Singleton.maps.Select(a => new Dropdown.OptionData(a.mapName)).ToList();
+            }
+            mapList.AddOptions(mapListOptions);
             mapList.onValueChanged.RemoveListener(OnMapListChange);
             mapList.onValueChanged.AddListener(OnMapListChange);
         }
@@ -287,6 +306,30 @@ public class UIPhotonGameCreate : UIBase
     public override void Show()
     {
         base.Show();
+
+        fixMapSelections.Clear();
+        if (fixMaps != null && fixMaps.Length > 0)
+        {
+            foreach (var fixMap in fixMaps)
+            {
+                MapSelection mapSelection;
+                if (!fixMap.scene.IsSet() || !BaseNetworkGameInstance.MapListBySceneNames.TryGetValue(fixMap.scene.SceneName, out mapSelection))
+                {
+                    Debug.LogWarning("There is no map with scene " + fixMap.scene.SceneName + " set in network game instance.");
+                    continue;
+                }
+                MapSelection newMapSelection = new MapSelection();
+                newMapSelection.mapName = mapSelection.mapName;
+                newMapSelection.scene = mapSelection.scene;
+                newMapSelection.previewImage = mapSelection.previewImage;
+                if (fixMap.availableGameRules != null && fixMap.availableGameRules.Length > 0)
+                    newMapSelection.availableGameRules = fixMap.availableGameRules.Where(a => mapSelection.availableGameRules.Contains(a)).ToArray();
+                if (newMapSelection.availableGameRules == null || newMapSelection.availableGameRules.Length == 0)
+                    newMapSelection.availableGameRules = mapSelection.availableGameRules;
+                fixMapSelections.Add(newMapSelection);
+            }
+        }
+
         SetupUIs();
         isForUpdate = false;
     }
@@ -387,6 +430,10 @@ public class UIPhotonGameCreate : UIBase
     public MapSelection GetSelectedMap()
     {
         var text = mapList.captionText.text;
+        if (fixMapSelections.Count > 0)
+        {
+            return fixMapSelections.FirstOrDefault(m => m.mapName == text);
+        }
         return BaseNetworkGameInstance.Singleton.maps.FirstOrDefault(m => m.mapName == text);
     }
 

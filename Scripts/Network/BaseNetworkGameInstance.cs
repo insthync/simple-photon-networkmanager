@@ -5,8 +5,8 @@ using UnityEngine;
 [System.Serializable]
 public class MapSelection
 {
-    public string mapName;
     public SceneNameField scene;
+    public string mapName;
     public Sprite previewImage;
     public BaseNetworkGameRule[] availableGameRules;
 }
