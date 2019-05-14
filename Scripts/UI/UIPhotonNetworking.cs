@@ -20,8 +20,11 @@ public class UIPhotonNetworking : UIBase
     public UIPhotonEnterPassword uiEnterPassword;
     public UIPhotonNetworkingEntry entryPrefab;
     public Transform gameListContainer;
+    public string formatConnectedRegion = "Region: {0}";
+    public Text textConnectedRegion;
     private readonly Dictionary<string, UIPhotonNetworkingEntry> entries = new Dictionary<string, UIPhotonNetworkingEntry>();
     private readonly Dictionary<int, CloudRegionCode> regions = new Dictionary<int, CloudRegionCode>();
+    private readonly Dictionary<CloudRegionCode, string> regionTitles = new Dictionary<CloudRegionCode, string>();
 
     private void OnEnable()
     {
@@ -34,6 +37,7 @@ public class UIPhotonNetworking : UIBase
                 var selectableRegion = selectableRegions[i];
                 titles.Add(selectableRegion.title);
                 regions[i] = selectableRegion.regionCode;
+                regionTitles[selectableRegion.regionCode] = selectableRegion.title;
             }
             dropdownRegion.AddOptions(titles);
         }
@@ -66,6 +70,16 @@ public class UIPhotonNetworking : UIBase
         SimplePhotonNetworkManager.onJoinedRoom -= OnJoinedRoomCallback;
         SimplePhotonNetworkManager.onLeftRoom -= OnLeftRoomCallback;
         SimplePhotonNetworkManager.onDisconnected -= OnDisconnectedCallback;
+    }
+
+    private void Update()
+    {
+        if (textConnectedRegion != null)
+        {
+            var title = PhotonNetwork.CloudRegion.ToString();
+            regionTitles.TryGetValue(PhotonNetwork.CloudRegion, out title);
+            textConnectedRegion.text = string.Format(formatConnectedRegion, title);
+        }
     }
 
     private void OnReceivedRoomListUpdateCallback(List<NetworkDiscoveryData> discoveryData)
