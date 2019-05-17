@@ -5,6 +5,7 @@ using UnityEngine;
 public class UINetworkLoading : MonoBehaviour
 {
     public static UINetworkLoading Singleton { get; private set; }
+    public GameObject connectingToMasterObject;
     public GameObject joiningLobbyObject;
     public GameObject joiningRoomObject;
 
@@ -17,12 +18,20 @@ public class UINetworkLoading : MonoBehaviour
         }
         DontDestroyOnLoad(gameObject);
         Singleton = this;
+        SimplePhotonNetworkManager.onConnectingToMaster += OnConnectingToMaster;
+        SimplePhotonNetworkManager.onConnectedToMaster += OnConnectedToMaster;
         SimplePhotonNetworkManager.onJoiningLobby += OnJoiningLobby;
         SimplePhotonNetworkManager.onJoiningRoom += OnJoiningRoom;
         SimplePhotonNetworkManager.onJoinedLobby += OnJoinedLobby;
         SimplePhotonNetworkManager.onJoinedRoom += OnJoinedRoom;
         SimplePhotonNetworkManager.onConnectionError += OnConnectionError;
         SimplePhotonNetworkManager.onRoomConnectError += OnRoomConnectError;
+    }
+
+    public void OnConnectingToMaster()
+    {
+        if (connectingToMasterObject != null)
+            connectingToMasterObject.SetActive(true);
     }
 
     public void OnJoiningLobby()
@@ -35,6 +44,12 @@ public class UINetworkLoading : MonoBehaviour
     {
         if (joiningRoomObject != null)
             joiningRoomObject.SetActive(true);
+    }
+
+    public void OnConnectedToMaster()
+    {
+        if (connectingToMasterObject != null)
+            connectingToMasterObject.SetActive(false);
     }
 
     public void OnJoinedLobby()
